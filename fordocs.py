@@ -27,7 +27,7 @@ if __name__ == '__main__':
         print 'this code requires Python 2.7+'
         sys.exit()
         
-    parser = argparse.ArgumentParser(description="Fortan Documentation generator")
+    parser = argparse.ArgumentParser(description="Fortran Documentation generator")
     parser.add_argument('source_folder')    
     parser.add_argument('output_folder')
     parser.add_argument('--file_pattern', default='*.*90' )
