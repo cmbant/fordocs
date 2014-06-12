@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>{{ docs_title }} - {{ class_name }}</title>
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css"/>
+	  <link rel="stylesheet" href="assets/css/bootstrap.css"/>
+	  <link rel="stylesheet" href="assets/css/jquery.orgchart.css"/>
+		
+	  <script src="assets/js/jquery-1.11.1.min.js"></script>		
+	  <script src="assets/js/bootstrap.min.js"></script>				
+	  <script src="assets/js/jquery.orgchart.js"></script>
+	  <script>
+	  $(function() {
+	      $(".chart").each( function(index) {
+					$(this).orgChart({container: $("#main" + index)});
+				});
+	  });
+	  </script>
+		
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">{{ docs_title }}</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="jumbotron">
+      <div class="container">
+         <h1>{{ module_name }}</h1>
+         <p style="font-size: 18px">Module, in 
+				{% if is_root_program %}
+              <a href="program_{{ file}}.html">{{ file }}</a>
+              {% else %}
+              <a href="file_{{ file}}.html">{{ file }}</a>
+              {% endif %}
+         </p>
+         		{% if comment_list|length > 0 %}
+					<p style="font-size: 15px">{% for comment in comment_list %}
+						{{ comment }}<br>
+					{% endfor %}</p>
+				{% endif %}
+			</div>
+    </div>
+
+    <div class="container">
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="col-md-8">
+					{% if cls_list|length > 0 %}					
+	          <h2>Module Classes</h2>
+						<ul>
+							{% for cls in cls_list|sort %}
+								<li><a href="class_{{ cls|lower }}.html">{{ cls }}</a></li>
+							{% else %}
+								<h4>No classes were found in this file.</h4>
+							{% endfor %}
+						</ul>
+						<br>
+						<br>
+					{% endif %}
+					
+					{% if sub_list|length > 0 %}
+          <h2>Independent Subroutines or Functions&nbsp;&nbsp;<small style="font-size: 14px"><a class="openpanel">Expand all</a> | <a class="closepanel">Collapse all</a></small></h2>
+					<ul>
+						{% for sub in sub_list|sort(attribute='sub_name')  %}						
+						  <div class="panel panel-default" style="border: 0px; background-color:#fff; border-color: #fff; box-shadow: 0px 0px 0px 0px; margin: 0px 0px 0px 0px">
+						    <div class="panel-heading" style="border: 0px; background-color:#fff; border-color: #fff; padding: 0px 0px 0px 0px">
+						        <li><a data-toggle="collapse" data-parent="#accordion" href="#collapse{{ loop.index }}">
+											{{ sub.sub_name }}
+						        </a>{% if sub.int_procs %}<small>(Interface)</small>{% endif %}</li>
+						    </div>
+						    <div id="collapse{{ loop.index }}" class="panel-collapse collapse" style="margin-left: 5px; margin-top: 3px; margin-bottom: 5px; border: 0px">
+						      <div class="panel-body" style="background-color:#eee; border: 0px; border-color: #fff">
+										{% if sub.int_procs %}
+											This interface maps to following procedures:
+											<ul>
+												{% for intproc in sub.int_procs %}
+													<li>{{ intproc }}</li>
+												{% endfor %}
+											</ul>
+										{% else %}
+											{% if sub.sub_comments|length > 0 %}
+												<i>
+												{% for cmt in sub.sub_comments %}
+													{{ cmt }}<br>
+												{% endfor %}
+												</i>
+											<br>
+											{% endif %}
+											{% for arg in sub.sub_args %}
+												{% if arg.var_class %}
+													{{ arg.class_type }}(<a href="class_{{ arg.var_class|lower }}.html">{{ arg.var_class }}</a>) :: {{ arg.var_name }}<br>
+												{% else %}
+													{{ arg.var_type }} :: {{ arg.var_name }}<br>
+												{% endif %}
+											{% endfor %}
+										{% endif %}
+						      </div>
+						    </div>
+						  </div>
+						{% else %}
+							<h4>No subroutines were found in this file.</h4>
+						{% endfor %}
+					</ul>
+					{% endif %}
+										
+       	</div>			
+				
+        <div class="col-md-4">
+          <h2>Module Dependecies</h2>
+					<ul>
+						{% for dep in dep_list|sort(attribute='using') %}
+							<li><a href="module_{{ dep.using|lower }}.html">{{ dep.using }}</a>
+								{% if dep.defined_in != "Unknown" %}	
+									<small>(Defined in <a href="{{ dep.defined_file_type }}_{{ dep.defined_in}}.html">{{ dep.defined_in }}</a>)</small>
+								{% endif %}
+							</li>
+						{% else %}
+							<h4>No dependecies were found in this file.</h4>
+						{% endfor %}
+					</ul>
+					<br>
+       	</div>				
+      </div>
+
+    </div> <!-- /container -->
+		<script type="text/javascript">
+			$(".openpanel").on("click", function() {
+			    $(".panel-collapse").collapse('show');
+			});
+			
+			$(".closepanel").on("click", function() {
+			    $(".panel-collapse").collapse('hide');
+			});
+	  </script>
+
+
+  </body>
+</html>
