@@ -121,7 +121,7 @@
        	</div>			
 				
         <div class="col-md-4">
-          <h2>Module Dependecies</h2>
+          <h2>Module Dependencies</h2>
 					<ul>
 						{% for dep in dep_list|sort(attribute='using') %}
 							<li><a href="module_{{ dep.using|lower }}.html">{{ dep.using }}</a>
@@ -130,7 +130,7 @@
 								{% endif %}
 							</li>
 						{% else %}
-							<h4>No dependecies were found in this file.</h4>
+							<h4>No dependencies were found in this file.</h4>
 						{% endfor %}
 					</ul>
 					<br>
