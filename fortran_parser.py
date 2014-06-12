@@ -6,7 +6,7 @@ import json
 class types_parser():
     
     TYPES_REGEX = \
-        re.compile('^type,*\s+(?:(?:abstract|private)[,\s]*)*'
+        re.compile('^type,*\s+(?:(?:abstract|private|public)[,\s]*)*'
                    '(?P<spec>extends\(\s*(?P<superclass>\w+)\s*\))?'
                    '\s*(?:::)?\s*(?P<class_name>\w+)',
                    flags=re.IGNORECASE)
