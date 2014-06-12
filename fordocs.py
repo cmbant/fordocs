@@ -18,7 +18,6 @@ def generate_docs(source_path, match_pattern, output_path, title=None, condition
     
     print 'Copying assets...'
     zipfile.ZipFile( os.path.join(os.path.dirname(os.path.abspath(__file__)), 'assets.zip')).extractall(output_path)
-    #unzip( os.path.dirname(os.path.abspath(__file__)) + os.sep + 'assets.zip', output_path)
     
     print 'Done.'
 
