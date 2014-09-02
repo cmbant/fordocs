@@ -1,13 +1,12 @@
 {% extends "base.html" %}
-{% block subtitle %}Index{% endblock %}
-{% block more_links %}<li><a href="{{ class_index }}"></a></li>{% endblock %}
+{% block subtitle %}Index {% endblock %}
 {% block lead_content %}
-<h1>{{ documentation_title }} Index</h1>
+<h1>{{ documentation_title }}</h1>
 {% endblock %}
 {% block content %}
 <div class="row">
-  <div class="col-md-12">
-  	<h2>Programs</h2>
+  <div class="col-md-4">
+  	<h2>Program Files</h2>
   	<ul>
   	  {% for prog in programs %}
   	  <li>
@@ -15,6 +14,13 @@
   	  </li>
   	  {% endfor %}
   	</ul>
+  </div>
+  <div class="col-md-4">
+   <h2>Class Structure</h2>
+    <ul>
+    <li><a href="{{ class_index }}">All class hierarchy trees</a>
+    </ul>
+  </div>
 </div>
 <div class="row">
   <div class="col-md-4">
@@ -34,4 +40,4 @@
   	{% include "_classes.html" %}
   </div>
 </div>
-{% endblock %}
+{% endblock %} 

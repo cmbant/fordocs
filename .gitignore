@@ -1,1 +1,5 @@
-/last_args.txt
+*.pyc
+lib/*.pyc
+.project
+.pydev*
+v1
