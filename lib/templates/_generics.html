@@ -1,0 +1,14 @@
+{# reguires the 'generics' variable #}
+{% if generics %}
+<h2>Generics <small><a id="gcollapser" data-toggle="collapse" data-target="generics" href="">Expand Generics</a></small></h2>
+<ul class="generics">
+  {% for generic in generics %}
+    <li>{{ generic.caption }}</li>
+    <ul class="collapse">
+    {% for procedure_name in generic.procedure_names %}
+      <li>{{ procedure_name }}</li>
+    {% endfor %}
+    </ul>
+  {% endfor %}
+</ul>
+{% endif %}

@@ -1,0 +1,14 @@
+{# requires the 'properties' variable #}
+{% if properties %}
+<h2>Properties</h2>
+<ul class="properties">
+{% for property in properties %}
+  {% if property.class_doc %}
+    <li><a href="{{ property.class_doc }}">{{ property.class_caption }}</a>
+    &nbsp;::&nbsp;{{ property.caption }}&nbsp;{{ property.extras|default('', true) }}</li>
+  {% else %}
+    <li>{{ property.class_caption }}&nbsp;{{ property.extras|default('', true) }}&nbsp;::&nbsp;{{ property.caption }}</li>
+  {% endif %}
+{% endfor %}
+</ul>
+{% endif %}

@@ -1,0 +1,21 @@
+{# expects a 'functions' variable #}
+{% if functions %}
+<ul class="functions">
+<h2>Functions&nbsp;&nbsp;<small><a id="fcollapser" data-toggle="collapse" data-target="arguments" href="">Expand Arguments</a></small></h2>
+  {% for function in functions %}
+  <li>
+  {% if function.return_doc %}
+    <b class="return_type"><a href="{{ function.return_doc }}">{{ function.return_caption }}</a></b>
+  {% else %}
+    <b class="return_type">{{ function.return_caption|default('void', true) }}</b>
+  {% endif %}
+    <b>{{ function.caption }}</b>
+    {% if function.comment|trim|e %}
+      <p><blockquote>{{ function.comment|e }}</blockquote></p>
+    {% endif %}
+    {% set subroutine=function %}
+    {% include "_arguments.html" %}
+    </li>
+  {% endfor %}
+</ul>
+{% endif %}

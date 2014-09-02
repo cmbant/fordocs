@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block subtitle %}{{ program_caption }}:PROG{% endblock %}
+{% block lead_content %}
+<h1>{{ program_caption }} <span class="label label-danger">Program</span></h1>
+{% if program_comment|trim %}
+<blockquote><p><pre>{{ program_comment|trim|e }}</pre></p></blockquote>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="row">
+	<div class="col-md-6">
+	  {% include "_modules.html" %}
+	</div>
+	<div class="col-md-6">
+	  {% include "_dependencies.html" %}
+	</div>
+</div>
+<div class="row">
+  <div class="col-md-6">
+    {% include "_subroutines.html" %}
+  </div>
+  <div class="col-md-6">
+    {% include "_functions.html" %}
+  </div>
+</div>
+{% endblock %}

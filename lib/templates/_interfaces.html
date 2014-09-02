@@ -1,0 +1,18 @@
+{# expects the 'interfaces' variable #}
+{% if interfaces %}
+<h2>Interfaces <small><a id="icollapser" data-toggle="collapse" data-target="interfaces" href="">Expand Interfaces</a></small></h2>
+<ul class="interfaces">
+{% for interface in interfaces %}
+	 <li>{{ interface.caption }}
+  {% for procedure in interface.procedures %}
+   {% if loop.first %}
+     <ul class="collapse">
+   {% endif %}
+     <li>{{ procedure }}</li>
+   {% if loop.last %}
+     </ul>
+   {% endif %}
+  {% endfor %}
+{% endfor %}
+</ul>
+{% endif %}

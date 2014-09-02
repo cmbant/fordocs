@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block subtitle %}{{ file_caption }}:FILE{% endblock %}
+{% block jumbotron_bgclass %}bg-primary{% endblock %}
+{% block lead_content %}
+<h1>{{ file_caption }} <span class="label label-info">File</span></h1>
+{% if file_comment|trim %}
+<blockquote><p><pre>{{ file_comment|trim|e }}</pre></p></blockquote>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    {% include "_modules.html" %}
+  </div>
+  <div class="col-md-6">
+    {% include "_dependencies.html" %}
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6">
+    {% include "_subroutines.html" %}
+  </div>
+  <div class="col-md-6">
+    {% include "_functions.html" %}
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    {% include "_trees.html" %}
+  </div>
+</div>
+{% endblock %}

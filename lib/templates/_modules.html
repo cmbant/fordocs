@@ -1,0 +1,15 @@
+{# expects a 'modules' variable #}
+{% if modules %}
+<h2>Modules</h2>
+  {% for module in modules %}
+  {% if loop.first %}
+  <ul>
+  {% endif %}
+    <li><a href="{{ module.doc }}">{{ module.caption }}</a></li>
+  {% if loop.last %}
+  </ul>
+  {% endif %}
+  {% else %}
+  <h3>No Modules Defined Here</h3>
+  {% endfor %}
+{% endif %}

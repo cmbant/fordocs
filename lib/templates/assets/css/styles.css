@@ -1,0 +1,41 @@
+.label {
+	font-size: 20px;
+}
+ul[class^='class-diagram']{
+	display: none;
+}
+div.orgChart div.node {
+	min-width: 200px;
+	max-height: 100px;
+	height: 50px;
+	padding-top: 12px;
+}
+div.orgChart td {
+	text-align: center;
+	vertical-align: top;
+	padding: 0px 2px;
+}
+ul.arguments {
+	background-color: #eaeaea;
+	padding: 8px 4px;
+}
+ul.subroutines blockquote, ul.functions blockquote {
+	font-size: 11px;
+}
+ul.arguments li.return {
+	color: #800080;
+	font-weight: bold;
+}
+b.return_type {
+	color: #4bdb22;
+}
+div.orgChart {
+  background-color: beige;
+  border: 1px solid lightgray;
+  clear: left;
+  display: block;
+  float: left;
+  margin: 10px auto;
+  min-width: 100%;
+  padding: 20px;
+}

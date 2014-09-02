@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block subtitle %}{{ module_caption }}:MOD{% endblock %}
+{% block jumbotron_bgclass %}bg-info{% endblock %}
+{% block lead_content %}
+<h1>{{ module_caption }} <span class="label label-primary">Module</span><small> 
+{% if module_file_doc %}
+  <a href="{{ module_file_doc|default('#', true) }}">
+  <span class="label label-info">file:{{ module_file_caption }}</span></a></small></h1>
+{% else %}
+Unknown File</small></h1>
+{% endif %}
+{% if module_comment|trim|e %}
+<blockquote><p><pre>{{ module_comment }}</pre></p></blockquote>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    {% include "_classes.html" %}
+  </div>
+  <div class="col-md-6">
+    {% include "_dependencies.html" %}
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6">
+    {% include "_interfaces.html" %}
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-6">
+    {% include "_subroutines.html" %}
+  </div>
+  <div class="col-md-6">
+    {% include "_functions.html" %}
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    {% include "_trees.html" %}
+  </div>
+</div>
+{% endblock %}

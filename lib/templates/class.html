@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{# requires variables:
+class_name
+class_module_doc
+class_module_caption
+class_file_doc
+class_file_caption
+class_comment
+subroutines
+functions
+trees
+#}
+{% block head %}
+<style>
+div.orgChart div.node.original{
+  background-color: #ffffff;
+  color: #c0c0c0; 
+}
+</style>
+{% endblock %}
+{% block subtitle %}
+{{ class_name }}:CLS
+{% endblock %}
+{% block jumbotron_bgclass %}bg-success{% endblock %}
+{% block lead_content %}
+<h1>{{ class_name }} <span class="label label-success">Class</span> 
+  <small><a href="{{ class_module_doc|default('#', true) }}">
+  <span class="label label-primary">module:{{ class_module_caption }}</span></a></small> 
+  <small><a href="{{ class_file_doc|default('#', true) }}">
+  <span class="label label-info">file:{{ class_file_caption }}</span></a></small></h1>
+{% if class_comment|trim %}
+<blockquote><p><pre>{{ class_comment|trim|e }}</pre></p></blockquote>
+{% endif %}
+{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-4">
+    {% include "_generics.html" %}
+  </div>
+</div>
+<div class="row">
+	<div class="col-md-4">
+	  {% include "_subroutines.html" %}
+	</div>
+	<div class="col-md-4">
+	  {% include "_functions.html" %}
+	</div>
+	<div class="col-md-4">
+	 {% include "_properties.html" %}
+	</div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    {% include "_trees.html" %}
+  </div>
+</div>
+{% endblock %}

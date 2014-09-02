@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block subtitle %}Index{% endblock %}
+{% block more_links %}<li><a href="{{ class_index }}"></a></li>{% endblock %}
+{% block lead_content %}
+<h1>{{ documentation_title }} Index</h1>
+{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-12">
+  	<h2>Programs</h2>
+  	<ul>
+  	  {% for prog in programs %}
+  	  <li>
+  	    <a href="{{ prog.doc }}">{{ prog.caption }}</a>
+  	  </li>
+  	  {% endfor %}
+  	</ul>
+</div>
+<div class="row">
+  <div class="col-md-4">
+    <h2>Files</h2>
+    <ul>
+    {% for file in files %}
+      <li>
+        <a href="{{ file.doc }}">{{ file.caption }}</a>
+      </li>
+    {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-4">
+  	{% include "_modules.html" %}
+  </div>
+  <div class="col-md-4">
+  	{% include "_classes.html" %}
+  </div>
+</div>
+{% endblock %}

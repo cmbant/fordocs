@@ -1,0 +1,22 @@
+{# expects 'dependencies' variable #}
+{% if dependencies %}
+<h2>Dependencies</h2>
+  {% for dependency in dependencies %}
+  {% if loop.first %}
+    <ul>
+  {% endif %}
+      {% if dependency.doc %} {# means there's a defining module and thus a file #}
+        <li><a href="{{ dependency.doc|default('#', true) }}">{{ dependency.caption }}</a>
+        {% if dependency.definer.doc %}
+	        <small>Defined in <a href="{{ dependency.definer.doc }}">{{ dependency.definer.caption }}</a>
+	        </small>
+        {% endif %}
+        </li>
+      {% else %}
+        <li>{{ dependency.caption }}</li>
+      {% endif %}
+  {% if loop.last %}
+    </ul>
+  {% endif %}
+  {% endfor %}
+{% endif %}
