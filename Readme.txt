@@ -29,8 +29,6 @@ Run forfocs.py -h to see list of optional parameters, for example exclusion list
                   [--excludes_file EXCLUDES_FILE]
                   source_folders [source_folders ...] output_folder
 
-Fortran Documentation generator
-
 positional arguments:
   source_folders        The directory in which to search for Fortran files,
                         recursively
@@ -42,8 +40,10 @@ optional arguments:
   --title TITLE         The title used in the documentation tab and index link
   --define DEFINE [DEFINE ...]
                         list of preprocessor definitions
+  --class_tree_splits CLASS_TREE_SPLITS [CLASS_TREE_SPLITS ...]
+                        list of class names to show separately in class tree
+                        index (rather than as part of larger big tree)
   --excludes EXCLUDES [EXCLUDES ...]
                         list of file name patterns to exclude
   --excludes_file EXCLUDES_FILE
                         file containing list of file names to exclude
-	

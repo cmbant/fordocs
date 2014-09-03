@@ -1,9 +1,16 @@
 {% extends "base.html" %}
+{% block head %}
+<style>
+div.orgChart div.node.original{
+  background-color: #ffffff;
+  color: #c0c0c0;
+}
+</style>
+{% endblock %}
 {% block subtitle %}Tree Views{% endblock %}
 {% block more_links %}
 {% endblock %}
 {% block lead_content %}
-<h1>Class Hierarchies</h1>
 {% endblock %}
 {% block content %}
 <div class="row">

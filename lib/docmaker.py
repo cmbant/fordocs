@@ -20,8 +20,9 @@ class HTMLDocMaker(object):
     
     ARGUMENT_CLASS_EXTRACTOR_REGEX = re.compile("(class|type)\s*\((?P<class>\w+)\)", re.IGNORECASE)  # also match for things like 'integer'
     
-    def __init__(self, destinationDirectory, documentationTitle="Fortran Documentation Index"):
+    def __init__(self, destinationDirectory, documentationTitle="Fortran Documentation Index", separate_top_classes=[]):
         self._fshandler = FileSystemHandler(destinationDirectory)
+        self._separate_top_classes=separate_top_classes
         env.globals["documentation_title"] = documentationTitle
     
     def makeDocs(self):
@@ -192,7 +193,7 @@ class HTMLDocMaker(object):
         index_doc = self._fshandler.homeIndex(FileSystemHandler.FROM_CLASS_FOLDER)
         output_file_name = self._fshandler.getSaveClassIndexName()
         dbclasses = session.query(Class).order_by(Class.name).all()
-        trees = self._parseFullTrees(dbclasses, FileSystemHandler.FROM_CLASS_FOLDER)
+        trees = self._parseFullTrees(dbclasses, FileSystemHandler.FROM_CLASS_FOLDER, self._separate_top_classes)
         if NOISY:
             print("Rendering template classes/_index.html")
         class_template = env.get_template("class_index.html")
@@ -310,6 +311,8 @@ class HTMLDocMaker(object):
     def _parseSubroutines(self, dbSubroutines, perspective):
         template_subroutines = []
         template_functions = []
+        # sort
+        dbSubroutines = sorted(dbSubroutines, key=lambda sub:sub.name.lower())
         for dbsub in dbSubroutines:
             subroutine_caption = "{}({})".format(dbsub.name, ", ".join([arg.name for arg in dbsub.arguments]))
             subroutine_comment = dbsub.comment
@@ -362,7 +365,9 @@ class HTMLDocMaker(object):
             
         return currentTree, branch  # include the branch so you know which classes were "treed"
     
-    def _fullTreeForClass(self, dbClass, perspective, currentTree=None, originalId=-1, parentIdentifier="root"):
+    def _fullTreeForClass(self, dbClass, perspective, currentTree=None, originalId=False, parentIdentifier="root",
+                           split_class_names=[]):
+        
         # create a the full inheritance tree for dbClass
         included_classes = set()
         if currentTree is None:
@@ -370,22 +375,44 @@ class HTMLDocMaker(object):
             # climb up to the top parent first, then create a tree from there
             parent_id = dbClass.parent_id
             while parent_id is not None:
-                dbClass = session.query(Class).filter(Class.id == parent_id).first()
+                nextdbClass = session.query(Class).filter(Class.id == parent_id).first()
+                if nextdbClass.name in split_class_names: break
+                dbClass = nextdbClass
                 parent_id = dbClass.parent_id
             # now we are on top
             currentTree = treelib.Tree()
             currentTree.create_node("Root", "root")
-            self._createTreeNode(currentTree, dbClass, perspective, "root", originalId)
+            self._createTreeNode(currentTree, dbClass, perspective, "root", original=dbClass.name in split_class_names)
             included_classes.add(dbClass)  # only the first class adds itself
         else:
-            self._createTreeNode(currentTree, dbClass, perspective, parentIdentifier, originalId)
-        parentIdentifier = dbClass.name 
+            self._createTreeNode(currentTree, dbClass, perspective, parentIdentifier, original=dbClass.name in split_class_names)
+        if not dbClass.name in split_class_names:
+            dbchildren = session.query(Class).filter(Class.parent_id == dbClass.id).all()
+            if dbchildren:
+                for dbchild in dbchildren:  # when there are no more children, it's over#
+                        included_classes.add(dbchild)
+                        _, node_classes = self._fullTreeForClass(dbchild, perspective, currentTree, False, parentIdentifier=dbClass.name,
+                                                                 split_class_names=split_class_names)
+                        included_classes.update(node_classes)
+        
+        return currentTree, included_classes
+
+    def _downTreeForClass(self, dbClass, perspective, split_class_names=[]):
+        
+        # create a the full inheritance tree for dbClass
+        included_classes = set()
+        currentTree = treelib.Tree()
+        currentTree.create_node("Root", "root")
+        self._createTreeNode(currentTree, dbClass, perspective, "root", original=True)
+        included_classes.add(dbClass)  # only the first class adds itself
+
         dbchildren = session.query(Class).filter(Class.parent_id == dbClass.id).all()
-        included_classes.update(dbchildren)
         if dbchildren:
-            for dbchild in dbchildren:  # when there are no more children, it's over
-                _, node_classes = self._fullTreeForClass(dbchild, perspective, currentTree, originalId, parentIdentifier)
-                included_classes.update(node_classes)
+            for dbchild in dbchildren:  # when there are no more children, it's over#
+                    included_classes.add(dbchild)
+                    _, node_classes = self._fullTreeForClass(dbchild, perspective, currentTree,
+                                            parentIdentifier=dbClass.name, split_class_names=split_class_names)
+                    included_classes.update(node_classes)
         return currentTree, included_classes
     
     def _treesFromClasses(self, dbClasses, perspective):
@@ -414,7 +441,7 @@ class HTMLDocMaker(object):
             currentTree = treelib.Tree()
             currentTree.create_node("Root", "root")
         if aClass in dbClasses:
-            self._createTreeNode(currentTree, aClass, perspective, parentIdentifier, originalId=-1)  # don't care about originals here
+            self._createTreeNode(currentTree, aClass, perspective, parentIdentifier)  # don't care about originals here
             parentIdentifier = aClass.name
             included_classes.add(aClass)
         children = session.query(Class).filter(Class.parent_id == aClass.id).all()
@@ -423,11 +450,12 @@ class HTMLDocMaker(object):
             included_classes.update(included)
         return currentTree, included_classes
         
-    def _createTreeNode(self, currentTree, dbClass, perspective, parentIdentifier, originalId):
-        if originalId == dbClass.id:
-            original = True
-        else:
-            original = False
+    def _createTreeNode(self, currentTree, dbClass, perspective, parentIdentifier, original=False):
+        if not isinstance(original, bool):
+            if original == dbClass.id:
+                original = True
+            else:
+                original = False
         currentTree.create_node(dbClass.name, dbClass.name, parent=parentIdentifier,
                                                             data=NodeData(self._fshandler.classDocForName(dbClass.name, perspective),
                                                                                         dbClass.name, original))
@@ -523,12 +551,19 @@ class HTMLDocMaker(object):
                     break
         return trees
     
-    def _parseFullTrees(self, dbClasses, perspective):
+    def _parseFullTrees(self, dbClasses, perspective, separate_top_classes=[]):
         trees = []
         already_included_classes = set()
+        for name in separate_top_classes:
+            for cls in dbClasses:
+                if cls.name==name:
+                    class_tree, included_classes = self._downTreeForClass(cls, perspective,split_class_names=separate_top_classes)
+                    already_included_classes.update(included_classes)
+                    if len(included_classes) > 1:
+                        trees.append(class_tree)
         for cls in dbClasses:
             if cls not in already_included_classes:
-                class_tree, included_classes = self._fullTreeForClass(cls, perspective, currentTree=None)
+                class_tree, included_classes = self._fullTreeForClass(cls, perspective, split_class_names=separate_top_classes)
                 already_included_classes.update(included_classes)
                 if len(included_classes) > 1:
                     trees.append(class_tree)
