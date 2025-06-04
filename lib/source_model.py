@@ -1,10 +1,6 @@
-'''
-Created on Aug 7, 2014
-@author: Mohammed Hamdy
-'''
-from sqlalchemy import create_engine, Column, String, Integer, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.sql.schema import Table
 
 engine = create_engine("sqlite://", echo=False)  # temporary memory database
@@ -13,16 +9,22 @@ session = Session()
 DecBase = declarative_base()
 
 # a file can have many dependencies. A dependency can appear in many files. Many to Many
-file_dep_assoc = Table("file_dep_assoc", DecBase.metadata,
-                                             Column("file_id", Integer, ForeignKey("file.id"), primary_key=True),
-                                             Column("dependency_id", Integer, ForeignKey("dependency.id"), primary_key=True))
+file_dep_assoc = Table(
+    "file_dep_assoc",
+    DecBase.metadata,
+    Column("file_id", Integer, ForeignKey("file.id"), primary_key=True),
+    Column("dependency_id", Integer, ForeignKey("dependency.id"), primary_key=True),
+)
 # a module can have many dependencies. And a dependency can appear in many modules. Many to Many
-module_dep_assoc = Table("module_dep_assoc", DecBase.metadata,
-                                                 Column("module_id", Integer, ForeignKey("module.id"), primary_key=True),
-                                                 Column("dependency_id", Integer, ForeignKey("dependency.id"), primary_key=True))
+module_dep_assoc = Table(
+    "module_dep_assoc",
+    DecBase.metadata,
+    Column("module_id", Integer, ForeignKey("module.id"), primary_key=True),
+    Column("dependency_id", Integer, ForeignKey("dependency.id"), primary_key=True),
+)
+
 
 class File(DecBase):
-
     __tablename__ = "file"
 
     id = Column(Integer, primary_key=True)
@@ -34,10 +36,11 @@ class File(DecBase):
     # configure table inheritance
     type = Column(String)
 
-    __mapper_args__ = {"polymorphic_identity":"file", "polymorphic_on":type}
+    __mapper_args__ = {"polymorphic_identity": "file", "polymorphic_on": type}
 
     def __repr__(self):
-        return u"<File name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return f"<File name={self.name} id={self.id} at {id(self):0x}>"
+
 
 class ProgramFile(File):
     """A program file is the same as File but with optional subroutines"""
@@ -46,13 +49,15 @@ class ProgramFile(File):
 
     id = Column(Integer, ForeignKey("file.id"), primary_key=True)
 
-    __mapper_args__ = {"polymorphic_identity":"program"}
+    __mapper_args__ = {"polymorphic_identity": "program"}
 
     def __repr__(self):
-        return u"<ProgramFile name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return "<ProgramFile name={} id={} at {:0x}>".format(
+            self.name, self.id, id(self)
+        )
+
 
 class Dependency(DecBase):
-
     __tablename__ = "dependency"
 
     id = Column(Integer, primary_key=True)
@@ -60,26 +65,31 @@ class Dependency(DecBase):
     name = Column(String)
 
     type = Column(String)
-    __mapper_args__ = { "polymorphic_identity":"dependency",
-                                         "polymorphic_on":type}
+    __mapper_args__ = {"polymorphic_identity": "dependency", "polymorphic_on": type}
 
     def __repr__(self):
-        return u"<Dependency name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return "<Dependency name={} id={} at {:0x}>".format(
+            self.name, self.id, id(self)
+        )
+
 
 class Interface(DecBase):
     """Belong to modules"""
+
     __tablename__ = "inteface"
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    procedure_names = Column(String)  # comma-separated list of procedure names. Could be complicated by linking to subroutine names. Ain't worth it
+    procedure_names = Column(
+        String
+    )  # comma-separated list of procedure names. Could be complicated by linking to subroutine names. Ain't worth it
     module_id = Column(Integer, ForeignKey("module.id"))
 
     def __repr__(self):
-        return "<Interface name={} at {:0x}>".format(self.name, id(self))
+        return f"<Interface name={self.name} at {id(self):0x}>"
+
 
 class Generic(DecBase):
-
     __tablename__ = "generic"
 
     id = Column(Integer, primary_key=True)
@@ -88,7 +98,8 @@ class Generic(DecBase):
     class_id = Column(Integer, ForeignKey("class.id"))
 
     def __repr__(self):
-        return "<Generic {} at {:0x}>".format(self.name, id(self))
+        return f"<Generic {self.name} at {id(self):0x}>"
+
 
 class Module(DecBase):
     """Represents a Fortran module"""
@@ -100,15 +111,17 @@ class Module(DecBase):
     comment = Column(String)
     file_id = Column(Integer, ForeignKey("file.id"))
     # a dependency won't always have a module. It may've been parsed from a file
-    dependencies = relationship("Dependency", secondary=module_dep_assoc, backref="modules")
+    dependencies = relationship(
+        "Dependency", secondary=module_dep_assoc, backref="modules"
+    )
     classes = relationship("Class", backref="module")  # a module can have classes
     subroutines = relationship("ModuleSubroutine", backref="module")
     interfaces = relationship("Interface", backref="module")
 
-    __mapper_args__ = {"polymorphic_identity":"module"}
+    __mapper_args__ = {"polymorphic_identity": "module"}
 
     def __repr__(self):
-        return u"<Module name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return f"<Module name={self.name} id={self.id} at {id(self):0x}>"
 
 
 class Class(DecBase):
@@ -124,7 +137,9 @@ class Class(DecBase):
     access_modifier = Column(String)  # private/public...
     # I'll assume each class belongs to a module
     module_id = Column(Integer, ForeignKey("module.id"))
-    subroutines = relationship("ClassSubroutine", backref="clazz")  # can't use class as column name
+    subroutines = relationship(
+        "ClassSubroutine", backref="clazz"
+    )  # can't use class as column name
     variables = relationship("ClassVariable", backref="clazz")
     generics = relationship("Generic", backref="clazz")
 
@@ -133,13 +148,15 @@ class Class(DecBase):
         return self.name == other.name
 
     def __repr__(self):
-        return "<Class name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return f"<Class name={self.name} id={self.id} at {id(self):0x}>"
 
     def __hash__(self):
         return self.name.__hash__()
 
+
 class Subroutine(DecBase):
     """A general subroutine or function. Doesn't belong to a class nor a program"""
+
     __tablename__ = "subroutine"
 
     id = Column(Integer, primary_key=True)
@@ -152,11 +169,13 @@ class Subroutine(DecBase):
     arguments = relationship("SubroutineArgument", backref="subroutine")
 
     type = Column(String)
-    __mapper_args__ = { "polymorphic_identity":"subroutine",
-                                         "polymorphic_on":type}
+    __mapper_args__ = {"polymorphic_identity": "subroutine", "polymorphic_on": type}
 
     def __repr__(self):
-        return "<Subroutine name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return "<Subroutine name={} id={} at {:0x}>".format(
+            self.name, self.id, id(self)
+        )
+
 
 class FileSubroutine(Subroutine):
     """Represents a file/program subroutine"""
@@ -166,10 +185,13 @@ class FileSubroutine(Subroutine):
     id = Column(Integer, ForeignKey("subroutine.id"), primary_key=True)
     file_id = Column(Integer, ForeignKey("file.id"))
 
-    __mapper_args__ = {"polymorphic_identity":"filesub"}
+    __mapper_args__ = {"polymorphic_identity": "filesub"}
 
     def __repr__(self):
-        return u"<FileSubroutine name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return "<FileSubroutine name={} id={} at {:0x}>".format(
+            self.name, self.id, id(self)
+        )
+
 
 class ClassSubroutine(Subroutine):
     """Represents a class subroutine"""
@@ -179,22 +201,27 @@ class ClassSubroutine(Subroutine):
     id = Column(Integer, ForeignKey("subroutine.id"), primary_key=True)
     class_id = Column(Integer, ForeignKey("class.id"))
 
-    __mapper_args__ = {"polymorphic_identity":"classroutine"}
+    __mapper_args__ = {"polymorphic_identity": "classroutine"}
 
     def __repr__(self):
-        return u"<ClassSubroutine name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return "<ClassSubroutine name={} id={} at {:0x}>".format(
+            self.name, self.id, id(self)
+        )
+
 
 class ModuleSubroutine(Subroutine):
-
     __tablename__ = "moduleroutine"
 
     id = Column(Integer, ForeignKey("subroutine.id"), primary_key=True)
     module_id = Column(Integer, ForeignKey("module.id"))
 
-    __mapper_args__ = {"polymorphic_identity":"moduleroutine"}
+    __mapper_args__ = {"polymorphic_identity": "moduleroutine"}
 
     def __repr__(self):
-        return u"<ModuleSubroutine name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return "<ModuleSubroutine name={} id={} at {:0x}>".format(
+            self.name, self.id, id(self)
+        )
+
 
 class Variable(DecBase):
     """A superclass for class variables and subroutine arguments"""
@@ -209,35 +236,39 @@ class Variable(DecBase):
     extras = Column(String)  # a comma separated stuff after the argument type
     comment = Column(String)
     type_ = Column(String)
-    __mapper_args__ = { "polymorphic_identity":"variable",
-                                         "polymorphic_on":type_}
+    __mapper_args__ = {"polymorphic_identity": "variable", "polymorphic_on": type_}
 
     def __repr__(self):
-        return u"<Variable name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return f"<Variable name={self.name} id={self.id} at {id(self):0x}>"
+
 
 class ClassVariable(Variable):
-
     __tablename__ = "classvariable"
 
     id = Column(Integer, ForeignKey("variable.id"), primary_key=True)
     class_id = Column(Integer, ForeignKey("class.id"))
 
-    __mapper_args__ = {"polymorphic_identity":"classvariable"}
+    __mapper_args__ = {"polymorphic_identity": "classvariable"}
 
     def __repr__(self):
-        return u"<ClassVariable name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return "<ClassVariable name={} id={} at {:0x}>".format(
+            self.name, self.id, id(self)
+        )
+
 
 class SubroutineArgument(Variable):
-
     __tablename__ = "argument"
 
     id = Column(Integer, ForeignKey("variable.id"), primary_key=True)
     subroutine_id = Column(Integer, ForeignKey("subroutine.id"))
 
-    __mapper_args__ = {"polymorphic_identity":"subroutineargument"}
+    __mapper_args__ = {"polymorphic_identity": "subroutineargument"}
 
     def __repr__(self):
-        return u"<SubroutineArgument name={} id={} at {:0x}>".format(self.name, self.id, id(self))
+        return "<SubroutineArgument name={} id={} at {:0x}>".format(
+            self.name, self.id, id(self)
+        )
+
 
 def createNewDatabase():
     DecBase.metadata.create_all(engine)

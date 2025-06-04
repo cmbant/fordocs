@@ -3,3 +3,5 @@ lib/*.pyc
 .project
 .pydev*
 v1
+.idea
+**/__pycache__/
