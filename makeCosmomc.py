@@ -4,7 +4,7 @@ import fordocs
 
 fordocs.generate_docs(
     [r"c://work/dist/git/cosmomc/source"],
-    r"z:\testoutfull",
+    r"./doc_out_cosmomc",
     "*.f90",
     "CosmoMC Documentation",
     defines=["MPI"],
@@ -26,4 +26,5 @@ fordocs.generate_docs(
         "TLikelihoodUser",
         "TObjectList",
     ],
+    github_root="https://github.com/cmbant/cosmomc",
 )

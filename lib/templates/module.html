@@ -2,7 +2,13 @@
 {% block subtitle %}{{ module_caption }}:MOD{% endblock %}
 {% block jumbotron_bgclass %}bg-info{% endblock %}
 {% block lead_content %}
-<h1>{{ module_caption }} <span class="badge bg-primary">Module</span><small>
+<h1>{{ module_caption }} <span class="badge bg-primary">Module</span>
+{% if module_file_github_url %}
+  <a href="{{ module_file_github_url }}" target="_blank" class="btn btn-outline-light btn-sm ms-2" title="View source on GitHub">
+    <i class="bi bi-github"></i> Source
+  </a>
+{% endif %}
+<small>
 {% if module_file_doc %}
   <a href="{{ module_file_doc|default('#', true) }}">
   <span class="badge bg-info">file:{{ module_file_caption }}</span></a></small></h1>

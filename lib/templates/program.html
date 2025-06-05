@@ -1,7 +1,13 @@
 {% extends "base.html" %}
 {% block subtitle %}{{ program_caption }}:PROG{% endblock %}
 {% block lead_content %}
-<h1>{{ program_caption }} <span class="badge bg-danger">Program</span></h1>
+<h1>{{ program_caption }} <span class="badge bg-danger">Program</span>
+{% if program_github_url %}
+  <a href="{{ program_github_url }}" target="_blank" class="btn btn-outline-light btn-sm ms-2" title="View source on GitHub">
+    <i class="bi bi-github"></i> Source
+  </a>
+{% endif %}
+</h1>
 {% if program_comment|trim %}
 <blockquote><p><pre>{{ program_comment|trim|e }}</pre></p></blockquote>
 {% endif %}

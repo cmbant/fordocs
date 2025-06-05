@@ -23,6 +23,8 @@ def generate_docs(
     excludes=[],
     excludes_file=None,
     class_tree_splits=[],
+    github_root=None,
+    github_subdir=None,
 ):
     mf = ModelFiller(defines)
     if NOISY:
@@ -36,7 +38,7 @@ def generate_docs(
         print()
         print("Phase #2: Generating documentation")
 
-    dm = HTMLDocMaker(destinationDirectory, title, class_tree_splits)
+    dm = HTMLDocMaker(destinationDirectory, title, class_tree_splits, github_root, sourceDirectories, github_subdir)
     dm.makeDocs()
     if NOISY:
         print("Phase #2: Finished")
@@ -68,6 +70,14 @@ if __name__ == "__main__":
 
     parser.add_argument("--excludes", nargs="+", help="list of file name patterns to exclude")
     parser.add_argument("--excludes_file", help="file containing list of file names to exclude")
+    parser.add_argument(
+        "--github_root",
+        help="GitHub repository root URL for hyperlinking to source files (e.g., https://github.com/cmbant/camb)",
+    )
+    parser.add_argument(
+        "--github_subdir",
+        help="Subdirectory within GitHub repository where source files are located (e.g., 'fortran' for CAMB)",
+    )
 
     args = parser.parse_args()
     generate_docs(
@@ -79,4 +89,6 @@ if __name__ == "__main__":
         excludes=args.excludes,
         excludes_file=args.excludes_file,
         class_tree_splits=args.class_tree_splits,
+        github_root=args.github_root,
+        github_subdir=args.github_subdir,
     )

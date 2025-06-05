@@ -5,6 +5,7 @@ fordocs.generate_docs(
     r"./doc_out_forutils",
     "*.f90",
     "ForUtils Documentation",
-    excludes=[],
+    excludes=["*_tests.f90"],
     class_tree_splits=[],
+    github_root="https://github.com/cmbant/forutils",
 )

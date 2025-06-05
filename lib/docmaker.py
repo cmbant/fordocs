@@ -8,9 +8,7 @@ from sqlalchemy import func
 from .fshandler import FileSystemHandler
 from .source_model import Class, File, FileSubroutine, Module, ProgramFile, session
 
-env = Environment(
-    loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates"))
-)
+env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
 NOISY = True
 
 
@@ -28,10 +26,56 @@ class HTMLDocMaker:
         destinationDirectory,
         documentationTitle="Fortran Documentation Index",
         separate_top_classes=[],
+        github_root=None,
+        source_directories=None,
+        github_subdir=None,
     ):
         self._fshandler = FileSystemHandler(destinationDirectory)
         self._separate_top_classes = separate_top_classes
+        self._github_root = github_root
+        self._source_directories = source_directories or []
+        self._github_subdir = github_subdir
         env.globals["documentation_title"] = documentationTitle
+        env.globals["github_root"] = github_root
+
+    def _generateGitHubURL(self, file_path):
+        """Generate GitHub URL for a source file if github_root is provided"""
+        if not self._github_root:
+            return None
+
+        import os
+
+        # Normalize the file path
+        normalized_file_path = os.path.normpath(file_path)
+
+        # Find the relative path from one of the source directories
+        relative_path = None
+        for source_dir in self._source_directories:
+            normalized_source_dir = os.path.normpath(source_dir)
+            try:
+                # Check if the file is under this source directory
+                relative_path = os.path.relpath(normalized_file_path, normalized_source_dir)
+                # If the relative path doesn't start with "..", it's under this source directory
+                if not relative_path.startswith(".."):
+                    break
+            except ValueError:
+                # This can happen on Windows when paths are on different drives
+                continue
+
+        if relative_path is None or relative_path.startswith(".."):
+            # Fallback: use just the filename if we can't determine relative path
+            relative_path = os.path.basename(file_path)
+
+        # Convert to forward slashes for URL
+        url_path = relative_path.replace("\\", "/")
+
+        # Add github_subdir if specified
+        if self._github_subdir:
+            url_path = f"{self._github_subdir.strip('/')}/{url_path}"
+
+        # Construct the GitHub URL
+        github_url = f"{self._github_root.rstrip('/')}/blob/master/{url_path}"
+        return github_url
 
     def makeDocs(self):
         self._fshandler.copyAssets()
@@ -49,9 +93,7 @@ class HTMLDocMaker:
         self._generateMainIndex()
 
     def _generateFileDocs(self):
-        assets_directory = self._fshandler.assetsDirectory(
-            FileSystemHandler.FROM_FILE_FOLDER
-        )
+        assets_directory = self._fshandler.assetsDirectory(FileSystemHandler.FROM_FILE_FOLDER)
         home_index = self._fshandler.homeIndex(FileSystemHandler.FROM_FILE_FOLDER)
         class_index = self._fshandler.classIndex(FileSystemHandler.FROM_FILE_FOLDER)
         file_template = env.get_template("file.html")
@@ -62,11 +104,7 @@ class HTMLDocMaker:
             template_args = self._templateArgsForFile(dbf)
             trees = self._treesForFile(dbf)
             if NOISY:
-                print(
-                    "Rendering template files/{}".format(
-                        self._fshandler.htmlNameForPath(dbf.name)
-                    )
-                )
+                print("Rendering template files/{}".format(self._fshandler.htmlNameForPath(dbf.name)))
             out_file_name = self._fshandler.getSaveFileName(dbf.name)
             open(out_file_name, "w").write(
                 file_template.render(
@@ -75,6 +113,7 @@ class HTMLDocMaker:
                     class_index=class_index,
                     file_caption=template_args["file_caption"],
                     file_comment=template_args["file_comment"],
+                    file_github_url=template_args["file_github_url"],
                     modules=template_args["template_modules"],
                     dependencies=template_args["template_dependencies"],
                     subroutines=template_args["template_subroutines"],
@@ -85,9 +124,7 @@ class HTMLDocMaker:
         print()
 
     def _generateProgramDocs(self):
-        assets_directory = self._fshandler.assetsDirectory(
-            FileSystemHandler.FROM_PROGRAM_FOLDER
-        )
+        assets_directory = self._fshandler.assetsDirectory(FileSystemHandler.FROM_PROGRAM_FOLDER)
         home_index = self._fshandler.homeIndex(FileSystemHandler.FROM_PROGRAM_FOLDER)
         class_index = self._fshandler.classIndex(FileSystemHandler.FROM_PROGRAM_FOLDER)
         program_template = env.get_template("program.html")
@@ -101,11 +138,7 @@ class HTMLDocMaker:
                 dbprogram
             )  # a ProgramFile is the same as File. Difference in template
             if NOISY:
-                print(
-                    "Rendering template programs/{}".format(
-                        self._fshandler.htmlNameForPath(dbprogram.name)
-                    )
-                )
+                print("Rendering template programs/{}".format(self._fshandler.htmlNameForPath(dbprogram.name)))
             out_program_name = self._fshandler.getSaveProgramName(dbprogram.name)
             open(out_program_name, "w").write(
                 program_template.render(
@@ -114,6 +147,7 @@ class HTMLDocMaker:
                     class_index=class_index,
                     program_caption=template_args["file_caption"],
                     program_comment=template_args["file_comment"],
+                    program_github_url=template_args["file_github_url"],
                     modules=template_args["template_modules"],
                     dependencies=template_args["template_dependencies"],
                     subroutines=template_args["template_subroutines"],
@@ -123,27 +157,22 @@ class HTMLDocMaker:
         print()
 
     def _generateModuleDocs(self):
-        assets_directory = self._fshandler.assetsDirectory(
-            FileSystemHandler.FROM_MODULE_FOLDER
-        )
+        assets_directory = self._fshandler.assetsDirectory(FileSystemHandler.FROM_MODULE_FOLDER)
         home_index = self._fshandler.homeIndex(FileSystemHandler.FROM_MODULE_FOLDER)
         class_index = self._fshandler.classIndex(FileSystemHandler.FROM_MODULE_FOLDER)
         module_template = env.get_template("module.html")
         dbmodules = session.query(Module).order_by(Module.name).all()
         for dbmodule in dbmodules:
             module_caption = dbmodule.name
-            module_file = (
-                session.query(File).filter(File.id == dbmodule.file_id).first()
-            )
+            module_file = session.query(File).filter(File.id == dbmodule.file_id).first()
             module_file_doc = self._fshandler.fileDocForPath(
                 module_file.name, perspective=FileSystemHandler.FROM_MODULE_FOLDER
             )
             module_file_caption = self._fshandler.pureFileName(module_file.name)
+            module_file_github_url = self._generateGitHubURL(module_file.name) if module_file else None
             module_comment = dbmodule.comment
             module_dbclasses = dbmodule.classes
-            template_classes = self._parseClasses(
-                module_dbclasses, perspective=FileSystemHandler.FROM_MODULE_FOLDER
-            )
+            template_classes = self._parseClasses(module_dbclasses, perspective=FileSystemHandler.FROM_MODULE_FOLDER)
             module_dependencies = dbmodule.dependencies
             template_dependencies = self._parseDependencies(
                 module_dependencies, perspective=FileSystemHandler.FROM_MODULE_FOLDER
@@ -154,15 +183,9 @@ class HTMLDocMaker:
             )
             module_interfaces = dbmodule.interfaces
             template_interfaces = self._parseInterfaces(module_interfaces)
-            trees = self._treesFromClasses(
-                dbmodule.classes, perspective=FileSystemHandler.FROM_MODULE_FOLDER
-            )
+            trees = self._treesFromClasses(dbmodule.classes, perspective=FileSystemHandler.FROM_MODULE_FOLDER)
             if NOISY:
-                print(
-                    "Rendering template modules/{}".format(
-                        self._fshandler.makeHtml(dbmodule.name)
-                    )
-                )
+                print("Rendering template modules/{}".format(self._fshandler.makeHtml(dbmodule.name)))
             output_module_file = self._fshandler.getSaveModuleName(dbmodule.name)
             open(output_module_file, "w").write(
                 module_template.render(
@@ -172,6 +195,7 @@ class HTMLDocMaker:
                     module_caption=module_caption,
                     module_file_doc=module_file_doc,
                     module_file_caption=module_file_caption,
+                    module_file_github_url=module_file_github_url,
                     module_comment=module_comment,
                     interfaces=template_interfaces,
                     classes=template_classes,
@@ -184,9 +208,7 @@ class HTMLDocMaker:
         print()
 
     def _generateClassDocs(self):
-        assets_directory = self._fshandler.assetsDirectory(
-            FileSystemHandler.FROM_CLASS_FOLDER
-        )
+        assets_directory = self._fshandler.assetsDirectory(FileSystemHandler.FROM_CLASS_FOLDER)
         home_index = self._fshandler.homeIndex(FileSystemHandler.FROM_CLASS_FOLDER)
         class_index = self._fshandler.classIndex(FileSystemHandler.FROM_CLASS_FOLDER)
         class_template = env.get_template("class.html")
@@ -205,9 +227,7 @@ class HTMLDocMaker:
             class_module = dbclass.module
             if class_module:
                 class_file_id = class_module.file_id
-                class_file = (
-                    session.query(File).filter(File.id == class_file_id).first()
-                )
+                class_file = session.query(File).filter(File.id == class_file_id).first()
                 if class_file is not None:
                     class_file_caption = self._fshandler.pureFileName(class_file.name)
                     class_file_doc = self._fshandler.fileDocForPath(
@@ -232,11 +252,7 @@ class HTMLDocMaker:
             template_properties = self._parseProperties(dbclass.variables)
             class_output_file = self._fshandler.getSaveClassName(dbclass.name)
             if NOISY:
-                print(
-                    "Rendering template classes/{}".format(
-                        self._fshandler.makeHtml(dbclass.name)
-                    )
-                )
+                print("Rendering template classes/{}".format(self._fshandler.makeHtml(dbclass.name)))
             open(class_output_file, "w").write(
                 class_template.render(
                     assets_directory=assets_directory,
@@ -259,17 +275,13 @@ class HTMLDocMaker:
 
     def _generateClassIndex(self):
         # put the class index in the classes directory
-        assets_directory = self._fshandler.assetsDirectory(
-            FileSystemHandler.FROM_CLASS_FOLDER
-        )
+        assets_directory = self._fshandler.assetsDirectory(FileSystemHandler.FROM_CLASS_FOLDER)
         home_index = self._fshandler.homeIndex(FileSystemHandler.FROM_CLASS_FOLDER)
         class_index = self._fshandler.classIndex(FileSystemHandler.FROM_CLASS_FOLDER)
         index_doc = self._fshandler.homeIndex(FileSystemHandler.FROM_CLASS_FOLDER)
         output_file_name = self._fshandler.getSaveClassIndexName()
         dbclasses = session.query(Class).order_by(Class.name).all()
-        trees = self._parseFullTrees(
-            dbclasses, FileSystemHandler.FROM_CLASS_FOLDER, self._separate_top_classes
-        )
+        trees = self._parseFullTrees(dbclasses, FileSystemHandler.FROM_CLASS_FOLDER, self._separate_top_classes)
         if NOISY:
             print("Rendering template classes/_index.html")
         class_template = env.get_template("class_index.html")
@@ -286,35 +298,21 @@ class HTMLDocMaker:
 
     def _generateMainIndex(self):
         output_file_name = self._fshandler.getSaveIndexName()
-        assets_directory = self._fshandler.assetsDirectory(
-            FileSystemHandler.FROM_INDEX_FOLDER
-        )
+        assets_directory = self._fshandler.assetsDirectory(FileSystemHandler.FROM_INDEX_FOLDER)
         home_index = self._fshandler.homeIndex(FileSystemHandler.FROM_INDEX_FOLDER)
         class_index = self._fshandler.classIndex(FileSystemHandler.FROM_INDEX_FOLDER)
         dbprograms = session.query(ProgramFile).all()
-        dbprograms.sort(
-            key=lambda program: self._fshandler.pureFileName(program.name).lower()
-        )
-        template_programs = self._parsePrograms(
-            dbprograms, perspective=FileSystemHandler.FROM_INDEX_FOLDER
-        )
+        dbprograms.sort(key=lambda program: self._fshandler.pureFileName(program.name).lower())
+        template_programs = self._parsePrograms(dbprograms, perspective=FileSystemHandler.FROM_INDEX_FOLDER)
         dbfiles = session.query(File).all()
-        dbfiles.sort(
-            key=lambda dbfile: self._fshandler.pureFileName(dbfile.name).lower()
-        )
-        template_files = self._parseFiles(
-            dbfiles, perspective=FileSystemHandler.FROM_INDEX_FOLDER
-        )
+        dbfiles.sort(key=lambda dbfile: self._fshandler.pureFileName(dbfile.name).lower())
+        template_files = self._parseFiles(dbfiles, perspective=FileSystemHandler.FROM_INDEX_FOLDER)
         dbmodules = session.query(Module).all()
         dbmodules.sort(key=lambda dbmodule: dbmodule.name.lower())
-        template_modules = self._parseModules(
-            dbmodules, perspective=FileSystemHandler.FROM_INDEX_FOLDER
-        )
+        template_modules = self._parseModules(dbmodules, perspective=FileSystemHandler.FROM_INDEX_FOLDER)
         dbclasses = session.query(Class).all()
         dbclasses.sort(key=lambda dbclass: dbclass.name.lower())
-        template_classes = self._parseClasses(
-            dbclasses, perspective=FileSystemHandler.FROM_INDEX_FOLDER
-        )
+        template_classes = self._parseClasses(dbclasses, perspective=FileSystemHandler.FROM_INDEX_FOLDER)
         if NOISY:
             print("Rendering main index")
         index_template = env.get_template("index.html")
@@ -334,14 +332,8 @@ class HTMLDocMaker:
     def _getSubroutinesForFile(self, dbFile):
         perspective = self._perspectiveForFile(dbFile)
         file_id = dbFile.id
-        dbsubroutines = (
-            session.query(FileSubroutine)
-            .filter(FileSubroutine.file_id == file_id)
-            .all()
-        )
-        template_subroutines, template_functions = self._parseSubroutines(
-            dbsubroutines, perspective=perspective
-        )
+        dbsubroutines = session.query(FileSubroutine).filter(FileSubroutine.file_id == file_id).all()
+        template_subroutines, template_functions = self._parseSubroutines(dbsubroutines, perspective=perspective)
         return template_subroutines, template_functions
 
     def _parsePrograms(self, dbPrograms, perspective):
@@ -383,9 +375,7 @@ class HTMLDocMaker:
             argument_comment = dbarg.comment
             extras = dbarg.extras
             # try to find the class of the argument, if any
-            class_doc, class_caption = self._classDocAndCaptionFromType(
-                dbarg.type, perspective
-            )
+            class_doc, class_caption = self._classDocAndCaptionFromType(dbarg.type, perspective)
             if result_name and dbarg.name == result_name:
                 is_return = True
                 result_name = None
@@ -404,17 +394,13 @@ class HTMLDocMaker:
             )
         return template_arguments
 
-    def _parseProperties(
-        self, dbProperties, perspective=FileSystemHandler.FROM_CLASS_FOLDER
-    ):
+    def _parseProperties(self, dbProperties, perspective=FileSystemHandler.FROM_CLASS_FOLDER):
         template_properties = []
         for property in dbProperties:
             property_caption = property.full_name
             property_comment = property.comment
             extras = property.extras
-            class_doc, class_caption = self._classDocAndCaptionFromType(
-                property.type, perspective
-            )
+            class_doc, class_caption = self._classDocAndCaptionFromType(property.type, perspective)
             template_properties.append(
                 {
                     "caption": property_caption,
@@ -432,9 +418,7 @@ class HTMLDocMaker:
         # sort
         dbSubroutines = sorted(dbSubroutines, key=lambda sub: sub.name.lower())
         for dbsub in dbSubroutines:
-            subroutine_caption = "{}({})".format(
-                dbsub.name, ", ".join([arg.name for arg in dbsub.arguments])
-            )
+            subroutine_caption = "{}({})".format(dbsub.name, ", ".join([arg.name for arg in dbsub.arguments]))
             subroutine_comment = dbsub.comment
             # parse arguments and make links to classes where available
             template_arguments = self._parseArguments(dbsub, perspective)
@@ -447,9 +431,7 @@ class HTMLDocMaker:
                 template_subroutines.append(args)
             elif dbsub.category == "function":
                 return_type = dbsub.typeString
-                return_doc, return_caption = self._classDocAndCaptionFromType(
-                    return_type, perspective
-                )
+                return_doc, return_caption = self._classDocAndCaptionFromType(return_type, perspective)
                 args["return_caption"] = return_caption
                 args["return_doc"] = return_doc
                 template_functions.append(args)
@@ -460,9 +442,7 @@ class HTMLDocMaker:
         for dbinterface in dbInterfaces:
             interface_name = dbinterface.name
             procedure_names = dbinterface.procedure_names.split(",")
-            template_interfaces.append(
-                {"caption": interface_name, "procedures": procedure_names}
-            )
+            template_interfaces.append({"caption": interface_name, "procedures": procedure_names})
         return template_interfaces
 
     def _parseGenerics(self, dbGenerics):
@@ -470,9 +450,7 @@ class HTMLDocMaker:
         for dbgen in dbGenerics:
             generic_caption = dbgen.name
             procedure_names = dbgen.associated_procedures.split(",")
-            template_generics.append(
-                {"caption": generic_caption, "procedure_names": procedure_names}
-            )
+            template_generics.append({"caption": generic_caption, "procedure_names": procedure_names})
         return template_generics
 
     def _treeBranchForClass(self, dbClass, perspective):
@@ -486,9 +464,7 @@ class HTMLDocMaker:
         parent_ids = ["root"]
         while parent_id is not None:
             dbclass = session.query(Class).filter(Class.id == parent_id).first()
-            branch.insert(
-                0, dbclass
-            )  # the branch should start from the top-most parent
+            branch.insert(0, dbclass)  # the branch should start from the top-most parent
             parent_ids.insert(1, dbclass.name)  # the ids start at root
             parent_id = dbclass.parent_id
         for cls, parent_id in zip(branch, parent_ids):
@@ -539,13 +515,9 @@ class HTMLDocMaker:
                 original=dbClass.name in split_class_names,
             )
         if dbClass.name not in split_class_names:
-            dbchildren = (
-                session.query(Class).filter(Class.parent_id == dbClass.id).all()
-            )
+            dbchildren = session.query(Class).filter(Class.parent_id == dbClass.id).all()
             if dbchildren:
-                for (
-                    dbchild
-                ) in dbchildren:  # when there are no more children, it's over#
+                for dbchild in dbchildren:  # when there are no more children, it's over#
                     included_classes.add(dbchild)
                     _, node_classes = self._fullTreeForClass(
                         dbchild,
@@ -587,9 +559,7 @@ class HTMLDocMaker:
         classes_per_tree = []
         dbClasses = set(dbClasses)
         for dbcls in dbClasses:
-            class_tree, included_classes = self._treeForClasses(
-                dbcls, dbClasses, perspective
-            )
+            class_tree, included_classes = self._treeForClasses(dbcls, dbClasses, perspective)
             if (
                 len(included_classes) > 1
                 and len(included_classes.intersection(dbClasses)) > 1
@@ -599,9 +569,7 @@ class HTMLDocMaker:
                 classes_per_tree.append(included_classes)
         return trees
 
-    def _treeForClasses(
-        self, aClass, dbClasses, perspective, currentTree=None, parentIdentifier="root"
-    ):
+    def _treeForClasses(self, aClass, dbClasses, perspective, currentTree=None, parentIdentifier="root"):
         # create a full tree with the exception that only dbClasses are allowed to be in it
         included_classes = set()
         if currentTree is None:
@@ -614,9 +582,7 @@ class HTMLDocMaker:
             currentTree = treelib.Tree()
             currentTree.create_node("Root", "root")
         if aClass in dbClasses:
-            self._createTreeNode(
-                currentTree, aClass, perspective, parentIdentifier
-            )  # don't care about originals here
+            self._createTreeNode(currentTree, aClass, perspective, parentIdentifier)  # don't care about originals here
             parentIdentifier = aClass.name
             included_classes.add(aClass)
         children = session.query(Class).filter(Class.parent_id == aClass.id).all()
@@ -631,9 +597,7 @@ class HTMLDocMaker:
             included_classes.update(included)
         return currentTree, included_classes
 
-    def _createTreeNode(
-        self, currentTree, dbClass, perspective, parentIdentifier, original=False
-    ):
+    def _createTreeNode(self, currentTree, dbClass, perspective, parentIdentifier, original=False):
         if not isinstance(original, bool):
             if original == dbClass.id:
                 original = True
@@ -656,9 +620,7 @@ class HTMLDocMaker:
         template_modules = [
             {
                 "caption": dbmodule.name,
-                "doc": self._fshandler.moduleDocForName(
-                    dbmodule.name, perspective=perspective
-                ),
+                "doc": self._fshandler.moduleDocForName(dbmodule.name, perspective=perspective),
             }
             for dbmodule in dbmodules
         ]
@@ -667,9 +629,7 @@ class HTMLDocMaker:
     def _templateDependenciesForFile(self, dbFile):
         perspective = self._perspectiveForFile(dbFile)
         dbdependencies = dbFile.dependencies
-        template_dependencies = self._parseDependencies(
-            dbdependencies, perspective=perspective
-        )
+        template_dependencies = self._parseDependencies(dbdependencies, perspective=perspective)
         return template_dependencies
 
     def _parseDependencies(self, dbDependencies, perspective):
@@ -687,12 +647,8 @@ class HTMLDocMaker:
                 definer = session.query(File).filter(File.id == dep_fileid).first()
                 if definer is not None:
                     definer_caption = self._fshandler.pureFileName(definer.name)
-                    definer_doc = self._fshandler.fileDocForPath(
-                        definer.name, perspective
-                    )
-                    dependency_doc = self._fshandler.moduleDocForName(
-                        user_defined_dependency.name, perspective
-                    )
+                    definer_doc = self._fshandler.fileDocForPath(definer.name, perspective)
+                    dependency_doc = self._fshandler.moduleDocForName(user_defined_dependency.name, perspective)
                 else:  # weird
                     definer_caption = None
                     definer_doc = None
@@ -721,12 +677,14 @@ class HTMLDocMaker:
     def _templateArgsForFile(self, dbFile):
         file_caption = self._fshandler.pureFileName(dbFile.name)
         file_comment = dbFile.comment
+        file_github_url = self._generateGitHubURL(dbFile.name)
         template_modules = self._templateModulesForFile(dbFile)
         template_dependencies = self._templateDependenciesForFile(dbFile)
         template_subroutines, template_functions = self._getSubroutinesForFile(dbFile)
         return {
             "file_caption": file_caption,
             "file_comment": file_comment,
+            "file_github_url": file_github_url,
             "template_dependencies": template_dependencies,
             "template_subroutines": template_subroutines,
             "template_functions": template_functions,
@@ -735,12 +693,8 @@ class HTMLDocMaker:
 
     def _treesForFile(self, dbFile):
         # make a tree for each class in the file
-        file_dbclasses = (
-            session.query(Class).join(Module).filter(Module.file_id == dbFile.id).all()
-        )
-        trees = self._treesFromClasses(
-            file_dbclasses, perspective=FileSystemHandler.FROM_FILE_FOLDER
-        )
+        file_dbclasses = session.query(Class).join(Module).filter(Module.file_id == dbFile.id).all()
+        trees = self._treesFromClasses(file_dbclasses, perspective=FileSystemHandler.FROM_FILE_FOLDER)
         return trees
 
     def _parseTrees(self, dbClasses, perspective):
@@ -749,9 +703,7 @@ class HTMLDocMaker:
         branches_trees = []
         for cls in dbClasses:
             if cls not in already_included_classes:
-                class_tree, included_classes = self._treeBranchForClass(
-                    cls, perspective
-                )
+                class_tree, included_classes = self._treeBranchForClass(cls, perspective)
                 branches_trees.append((included_classes, class_tree))
                 already_included_classes.update(included_classes)
         # keep the longest branch. and any classes that don't belong to it
@@ -800,13 +752,9 @@ class HTMLDocMaker:
             if class_match:
                 return_class = class_match.group("class")
                 # check it's database entry
-                db_return_class = (
-                    session.query(Class).filter(Class.name == return_class).first()
-                )
+                db_return_class = session.query(Class).filter(Class.name == return_class).first()
                 if db_return_class:
-                    class_doc = self._fshandler.classDocForName(
-                        db_return_class.name, perspective=perspective
-                    )
+                    class_doc = self._fshandler.classDocForName(db_return_class.name, perspective=perspective)
                     class_caption = db_return_class.name
                 else:
                     class_doc = None
@@ -821,9 +769,7 @@ class HTMLDocMaker:
 
     def _perspectiveForFile(self, dbFile):
         # dbFile is a File or ProgramFile. this method fixes the perspective for both
-        if isinstance(
-            dbFile, ProgramFile
-        ):  # ProgramFile must be tested first, since it's a subclass of File
+        if isinstance(dbFile, ProgramFile):  # ProgramFile must be tested first, since it's a subclass of File
             perspective = FileSystemHandler.FROM_PROGRAM_FOLDER
         elif isinstance(dbFile, File):
             perspective = FileSystemHandler.FROM_FILE_FOLDER

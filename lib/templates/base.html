@@ -18,6 +18,22 @@
     />
     <link rel="stylesheet" href="{{ assets_directory }}/css/styles.css" />
     {% block head %}{% endblock %}
+
+    <!-- Prevent flash of wrong theme by detecting preference early -->
+    <script>
+      (function () {
+        function getSystemTheme() {
+          return window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+
+        const savedTheme = localStorage.getItem("theme") || getSystemTheme();
+        document.documentElement.setAttribute("data-bs-theme", savedTheme);
+      })();
+    </script>
+
     <title>
       {% block subtitle %}{% endblock %}{% if self.subtitle() %} :: {% endif
       %}{{ documentation_title }}
@@ -122,10 +138,31 @@
         const themeIcon = document.getElementById("theme-icon");
         const html = document.documentElement;
 
-        // Load saved theme or default to light
-        const savedTheme = localStorage.getItem("theme") || "light";
-        html.setAttribute("data-bs-theme", savedTheme);
-        updateThemeIcon(savedTheme);
+        // Get current theme and update icon (theme already set in head)
+        const currentTheme = html.getAttribute("data-bs-theme");
+        updateThemeIcon(currentTheme);
+
+        // Helper function for system theme detection
+        function getSystemTheme() {
+          return window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        }
+
+        // Listen for system theme changes
+        if (window.matchMedia) {
+          window
+            .matchMedia("(prefers-color-scheme: dark)")
+            .addEventListener("change", function (e) {
+              // Only update if user hasn't manually set a preference
+              if (!localStorage.getItem("theme")) {
+                const newTheme = e.matches ? "dark" : "light";
+                html.setAttribute("data-bs-theme", newTheme);
+                updateThemeIcon(newTheme);
+              }
+            });
+        }
 
         themeToggle.addEventListener("click", function () {
           const currentTheme = html.getAttribute("data-bs-theme");

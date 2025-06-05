@@ -18,4 +18,6 @@ fordocs.generate_docs(
         "writefits*",
     ],
     class_tree_splits=["TCambComponent"],
+    github_root="https://github.com/cmbant/camb",
+    github_subdir="fortran",
 )
