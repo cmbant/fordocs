@@ -128,8 +128,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- **Mohammed Hamdy** - Original author
-- **Antony Lewis** - Maintainer and contributor
+- **Mohammed Hamdy** and **AI agent** - Original authors
+- **Antony Lewis** - Maintainer and manager
 
 ## 🔗 Links
 
