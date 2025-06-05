@@ -1,14 +1,35 @@
-{# requires the 'properties' variable #}
-{% if properties %}
-<h2>Properties</h2>
-<ul class="properties">
-{% for property in properties %}
-  {% if property.class_doc %}
-    <li><a href="{{ property.class_doc }}">{{ property.class_caption }}</a>
-    &nbsp;::&nbsp;{{ property.caption }}&nbsp;{{ property.extras|default('', true) }}</li>
-  {% else %}
-    <li>{{ property.class_caption }}&nbsp;{{ property.extras|default('', true) }}&nbsp;::&nbsp;{{ property.caption }}</li>
-  {% endif %}
-{% endfor %}
-</ul>
+{# Modern Properties Template - requires the 'properties' variable #} {% if
+properties %}
+<div class="card h-100">
+  <div class="card-header">
+    <h5 class="card-title mb-0"><i class="bi bi-list-ul"></i> Properties</h5>
+  </div>
+  <div class="card-body">
+    <ul class="list-unstyled properties">
+      {% for property in properties %}
+      <li class="mb-2 p-2 border rounded bg-light">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          {% if property.class_doc %}
+          <a href="{{ property.class_doc }}" class="text-decoration-none">
+            <span class="badge bg-info">{{ property.class_caption }}</span>
+          </a>
+          {% else %}
+          <span class="badge bg-secondary">{{ property.class_caption }}</span>
+          {% endif %}
+          <span class="text-muted">::</span>
+          <code class="text-primary">{{ property.caption }}</code>
+          {% if property.extras %}
+          <small class="text-muted">{{ property.extras }}</small>
+          {% endif %}
+        </div>
+        {% if property.comment %}
+        <div class="mt-1">
+          <small class="text-muted">{{ property.comment|e }}</small>
+        </div>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
 {% endif %}

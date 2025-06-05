@@ -761,13 +761,14 @@ class HTMLDocMaker:
             if len(branch) > len(longest_branch):
                 longest_branch = branch
                 corresponding_tree = tree
-        if corresponding_tree:
+        if corresponding_tree and len(longest_branch) > 1:
             trees.append(corresponding_tree)  # the longest tree should be always drawn
         for branch, tree in branches_trees:
-            for dbcls in branch:
-                if dbcls not in longest_branch:  # include it's tree
-                    trees.append(tree)
-                    break
+            if len(branch) > 1:  # only include trees with multiple nodes
+                for dbcls in branch:
+                    if dbcls not in longest_branch:  # include it's tree
+                        trees.append(tree)
+                        break
         return trees
 
     def _parseFullTrees(self, dbClasses, perspective, separate_top_classes=[]):

@@ -3,25 +3,45 @@ Fortran Document Generator Readme
 
 GitHub Page: https://github.com/cmbant/fordocs
 
+## Features
 
-1- Install the requirements from the included requirements.txt:
+✨ **Interactive Tree Diagrams**: Zoom, pan, and explore class hierarchies with modern visualization
+🎨 **Dark/Light Theme**: Toggle between themes for comfortable viewing
+📱 **Responsive Design**: Works perfectly on desktop, tablet, and mobile devices
+🔍 **Zoom Controls**: Built-in zoom in/out and fit-to-view functionality
+🚀 **Modern UI**: Bootstrap 5 with cards, icons, and smooth animations
 
-	pip install -r requirements.txt
+## Installation
 
-2- Using the program:
+### Option 1: Modern Python (Recommended)
+Install using the modern pyproject.toml configuration:
 
-	This generator will extract the classes, function, subroutine and dependencies from every file (*.f90) of the project.
-	In order to use the generator, run the following:
+	pip install -e .
+
+## Usage
+
+This generator extracts classes, functions, subroutines, and dependencies from Fortran files (*.f90) and creates modern, interactive documentation.
+
+### Basic Usage
+	python fordocs.py <SourceDirectory/ies> <OutputDirectory>
+
+### Example
+	python fordocs.py cosmomc/source/ fordocs/output
+
+The script automatically finds every file matching the pattern recursively under the SourceDirectory root.
+
+### Tree Diagram Features
+Once generated, open the documentation in a web browser to enjoy:
+- **Interactive Navigation**: Click tree nodes to jump to class documentation
+- **Zoom & Pan**: Use mouse wheel to zoom, drag to pan around large trees
+- **Theme Toggle**: Click the theme button in the navbar to switch between light/dark modes
+- **Mobile Friendly**: Tree diagrams automatically adapt to smaller screens
+- **Export**: Download tree diagrams as PNG images using the download button
 	
-	    python fordocs.py <SourceDirectory/ies> <OutputDirectory>
-	
-	ex:
-	    python fordocs.py cosmomc/source/ fordocs/output
-			
-	The script will automatically find every file matching the pattern recursively under the SourceDirectory root.
-	
 
-Run forfocs.py -h to see list of optional parameters, for example exclusion list:
+## Advanced Options
+
+Run `python fordocs.py -h` to see the full list of optional parameters:
 
 	usage: fordocs.py [-h] [--file_pattern FILE_PATTERN] [--title TITLE]
                   [--define DEFINE [DEFINE ...]]
@@ -47,3 +67,4 @@ optional arguments:
                         list of file name patterns to exclude
   --excludes_file EXCLUDES_FILE
                         file containing list of file names to exclude
+

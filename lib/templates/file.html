@@ -2,7 +2,7 @@
 {% block subtitle %}{{ file_caption }}:FILE{% endblock %}
 {% block jumbotron_bgclass %}bg-primary{% endblock %}
 {% block lead_content %}
-<h1>{{ file_caption }} <span class="label label-info">File</span></h1>
+<h1>{{ file_caption }}.f90 <span class="badge bg-info">File</span></h1>
 {% if file_comment|trim %}
 <blockquote><p><pre>{{ file_comment|trim|e }}</pre></p></blockquote>
 {% endif %}

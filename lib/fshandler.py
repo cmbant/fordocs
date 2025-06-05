@@ -30,13 +30,27 @@ class FileSystemHandler:
     def copyAssets(self):
         source_assets_directory = self._join(pth.dirname(__file__), "templates/assets")
         output_assets_directory = self._join(self._destination, "assets")
-        self._mkDir(output_assets_directory)
+
+        # Remove existing assets directory if it exists
+        if pth.exists(output_assets_directory):
+            try:
+                shutil.rmtree(output_assets_directory)
+            except Exception as e:
+                print(f"Warning: Could not remove existing assets directory: {e}")
+
+        # Copy assets from template to output
         try:
-            shutil.rmtree(output_assets_directory)
-        except shutil.Error as e:
-            print(e)
-        else:
             shutil.copytree(source_assets_directory, output_assets_directory)
+            print(
+                f"Assets copied from {source_assets_directory} to {output_assets_directory}"
+            )
+        except Exception as e:
+            print(f"Error copying assets: {e}")
+            # Create empty directory structure as fallback
+            self._mkDir(output_assets_directory)
+            self._mkDir(self._join(output_assets_directory, "css"))
+            self._mkDir(self._join(output_assets_directory, "js"))
+            self._mkDir(self._join(output_assets_directory, "fonts"))
 
     def homeIndex(self, perspective):
         if perspective == self.FROM_INDEX_FOLDER:

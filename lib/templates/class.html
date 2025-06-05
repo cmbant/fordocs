@@ -1,57 +1,109 @@
-{% extends "base.html" %}
-{# requires variables:
-class_name
-class_module_doc
-class_module_caption
-class_file_doc
-class_file_caption
-class_comment
-subroutines
-functions
-trees
-#}
-{% block head %}
+{% extends "base.html" %} {# requires variables: class_name class_module_doc
+class_module_caption class_file_doc class_file_caption class_comment subroutines
+functions trees #} {% block head %}
 <style>
-div.orgChart div.node.original{
-  background-color: #ffffff;
-  color: #c0c0c0; 
-}
+  /* Modern styling for class pages */
+  .class-header {
+    background: linear-gradient(
+      135deg,
+      var(--bs-success) 0%,
+      var(--bs-success-dark, #198754) 100%
+    );
+  }
+
+  [data-bs-theme="dark"] .class-header {
+    background: linear-gradient(135deg, var(--bs-success) 0%, #0f5132 100%);
+  }
+
+  .class-comment {
+    background-color: #f8f9fa;
+    border-left: 4px solid #198754;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    margin: 1rem 0;
+    color: #212529;
+  }
+
+  [data-bs-theme="dark"] .class-comment {
+    background-color: #343a40;
+    color: #f8f9fa;
+    border-left-color: #198754;
+  }
+
+  .class-comment pre {
+    background: transparent !important;
+    border: none !important;
+    margin: 0;
+    padding: 0;
+    color: inherit !important;
+    font-family: inherit;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+  .class-comment h6 {
+    color: #198754;
+  }
+
+  [data-bs-theme="dark"] .class-comment h6 {
+    color: #20c997;
+  }
 </style>
-{% endblock %}
-{% block subtitle %}
-{{ class_name }}:CLS
-{% endblock %}
-{% block jumbotron_bgclass %}bg-success{% endblock %}
-{% block lead_content %}
-<h1>{{ class_name }} <span class="label label-success">Class</span> 
-  <small><a href="{{ class_module_doc|default('#', true) }}">
-  <span class="label label-primary">module:{{ class_module_caption }}</span></a></small> 
-  <small><a href="{{ class_file_doc|default('#', true) }}">
-  <span class="label label-info">file:{{ class_file_caption }}</span></a></small></h1>
-{% if class_comment|trim %}
-<blockquote><p><pre>{{ class_comment|trim|e }}</pre></p></blockquote>
-{% endif %}
-{% endblock %}
-{% block content %}
-<div class="row">
-  <div class="col-md-4">
-    {% include "_generics.html" %}
+{% endblock %} {% block subtitle %} {{ class_name }}:CLS {% endblock %} {% block
+jumbotron_bgclass %}class-header{% endblock %} {% block lead_content %}
+<div class="d-flex flex-column flex-md-row align-items-start">
+  <div class="flex-grow-1">
+    <h1 class="display-5 fw-bold mb-3">
+      <i class="bi bi-box"></i> {{ class_name }}
+      <span class="badge bg-success ms-2">Class</span>
+    </h1>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      {% if class_module_caption %}
+      <a
+        href="{{ class_module_doc|default('#', true) }}"
+        class="text-decoration-none"
+      >
+        <span class="badge bg-primary">
+          <i class="bi bi-collection"></i> module: {{ class_module_caption }}
+        </span>
+      </a>
+      {% endif %} {% if class_file_caption %}
+      <a
+        href="{{ class_file_doc|default('#', true) }}"
+        class="text-decoration-none"
+      >
+        <span class="badge bg-info">
+          <i class="bi bi-file-earmark-code"></i> file: {{ class_file_caption }}
+        </span>
+      </a>
+      {% endif %}
+    </div>
   </div>
 </div>
-<div class="row">
-	<div class="col-md-4">
-	  {% include "_subroutines.html" %}
-	</div>
-	<div class="col-md-4">
-	  {% include "_functions.html" %}
-	</div>
-	<div class="col-md-4">
-	 {% include "_properties.html" %}
-	</div>
+{% if class_comment|trim %}
+<div class="class-comment">
+  <h6 class="fw-bold mb-2">
+    <i class="bi bi-chat-square-text"></i> Description
+  </h6>
+  <pre class="mb-0">{{ class_comment|trim|e }}</pre>
 </div>
-<div class="row">
-  <div class="col-md-12">
-    {% include "_trees.html" %}
+{% endif %} {% endblock %} {% block content %}
+<div class="container-fluid">
+  <!-- Generics Section -->
+  <div class="row mb-4">
+    <div class="col-12">{% include "_generics.html" %}</div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-4 col-md-6">{% include "_subroutines.html" %}</div>
+    <div class="col-lg-4 col-md-6">{% include "_functions.html" %}</div>
+    <div class="col-lg-4 col-md-12">{% include "_properties.html" %}</div>
+  </div>
+
+  <!-- Tree Diagrams Section -->
+  <div class="row">
+    <div class="col-12">{% include "_trees.html" %}</div>
   </div>
 </div>
 {% endblock %}

@@ -1,8 +1,10 @@
 import fordocs
 
+# usage example for camb as script
+
 fordocs.generate_docs(
     [r"c://work/dist/git/camb/fortran"],
-    r"z:\testoutfull",
+    r"./doc_out_camb",
     "*.f90",
     "Fortran CAMB Documentation",
     excludes=[

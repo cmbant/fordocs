@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fordocs"
+version = "2.0.0"
+description = "Modern Fortran documentation generator with tree diagrams"
+readme = "Readme.txt"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Antony Lewis", email = "antony@cosmologist.info"}
+]
+keywords = ["fortran", "documentation", "generator", "tree", "diagrams"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+]
+
+dependencies = [
+    "jinja2>=3.1.0",
+    "sqlalchemy>=2.0.0",
+    "treelib>=1.6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/cmbant/fordocs"
+Repository = "https://github.com/cmbant/fordocs.git"
+Issues = "https://github.com/cmbant/fordocs/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lib*", "fordocs*"]
+

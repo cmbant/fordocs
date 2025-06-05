@@ -1,85 +1,479 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    {# each sub-template must provide the assets_directory from it's perspective #}
-    <link rel="stylesheet" href="{{ assets_directory }}/css/bootstrap.min.css"/> 
-    <link rel="stylesheet" href="{{ assets_directory }}/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="{{ assets_directory }}/css/jquery.orgchart.css">
-    <link rel="stylesheet" href="{{ assets_directory }}/css/styles.css">
-    <script src="{{ assets_directory }}/js/jquery.min.js"></script>
-    <script src="{{ assets_directory }}/js/bootstrap.min.js"></script>
-    <script src="{{ assets_directory }}/js/jquery.orgchart.min.js"></script>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.css"
+    />
+    <link rel="stylesheet" href="{{ assets_directory }}/css/styles.css" />
     {% block head %}{% endblock %}
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
-    <title>{% block subtitle %}{% endblock %}::{{ documentation_title }}</title>
+    <title>
+      {% block subtitle %}{% endblock %}{% if self.subtitle() %} :: {% endif
+      %}{{ documentation_title }}
+    </title>
   </head>
   <body>
-  	<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <!-- Modern Bootstrap 5 Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
       <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          {# each sub-template must provide home_index, class_index #}
-          <a class="navbar-brand" href="{{ home_index }}">{{ documentation_title }}</a>
-          <a class="navbar-brand" href="{{ class_index }}">Tree Views</a>
-        </div>
-        <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-            <!-- <li><a href=""></a></li> -->
+        <a class="navbar-brand" href="{{ home_index }}">
+          <i class="bi bi-book"></i> {{ documentation_title }}
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ class_index }}">
+                <i class="bi bi-diagram-3"></i> Tree Views
+              </a>
+            </li>
             {% block more_links %}{% endblock %}
           </ul>
-        </div><!--/.nav-collapse -->
+          <!-- Theme Toggle Button -->
+          <button
+            class="btn btn-outline-light btn-sm"
+            id="theme-toggle"
+            type="button"
+          >
+            <i class="bi bi-sun-fill" id="theme-icon"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+    <!-- Modern Bootstrap 5 Hero Section -->
+    <div
+      class="bg-primary text-white py-5 {% block jumbotron_bgclass %}{% endblock %}"
+    >
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-12">{% block lead_content %}{% endblock %}</div>
+        </div>
       </div>
     </div>
-    <div class="jumbotron {% block jumbotron_bgclass %}{% endblock %}">
+
+    <!-- Main Content -->
+    <div class="container mt-4">{% block content %}{% endblock %}</div>
+
+    <!-- Discrete Footer -->
+    <footer class="mt-5 py-3 border-top">
       <div class="container">
-  	    {% block lead_content %}{% endblock %}
-  	  </div>
-  	</div>
-  	<div class="container">
-  	  {% block content %}{% endblock %}
-  	</div>
-  	<script>
-    $(function() {
-        $("ul[class^='class-diagram']").each(function(index){
-        	var original_class = $(this).attr("class");
-        	var output_diagram_class = original_class.replace("class-diagram", "diagram-container"); // keeping the index in place
-        	$(this).orgChart({container:$('.' + output_diagram_class)});
-        })
-    });
-    $("#fcollapser, #scollapser, #icollapser, #gcollapser").click(function(event) {
-      event.preventDefault();
-      if ($(this).attr("id") == "scollapser") {
-        var $_tocollapse = $(".subroutines").find(".collapse");
+        <div class="row">
+          <div class="col-12 text-center">
+            <small class="text-muted">
+              Generated by
+              <a
+                href="https://github.com/cmbant/fordocs"
+                class="text-decoration-none text-muted"
+                >fordocs</a
+              >
+            </small>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Modern JavaScript Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Dagre layout library (must be loaded before cytoscape-dagre) -->
+    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js"></script>
+    <!-- Cytoscape core -->
+    <script src="https://unpkg.com/cytoscape@3.26.0/dist/cytoscape.min.js"></script>
+    <!-- Cytoscape dagre extension -->
+    <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+
+    <script>
+      // Register cytoscape-dagre extension
+      if (
+        typeof cytoscape !== "undefined" &&
+        typeof cytoscapeDagre !== "undefined"
+      ) {
+        cytoscape.use(cytoscapeDagre);
+        console.log("Cytoscape-dagre extension registered successfully");
+      } else {
+        console.error(
+          "Failed to register cytoscape-dagre extension - dependencies not loaded"
+        );
       }
-      else if ($(this).attr("id") == "fcollapser"){
-    	  var $_tocollapse = $(".functions").find(".collapse");
+
+      // Theme Toggle Functionality
+      document.addEventListener("DOMContentLoaded", function () {
+        const themeToggle = document.getElementById("theme-toggle");
+        const themeIcon = document.getElementById("theme-icon");
+        const html = document.documentElement;
+
+        // Load saved theme or default to light
+        const savedTheme = localStorage.getItem("theme") || "light";
+        html.setAttribute("data-bs-theme", savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener("click", function () {
+          const currentTheme = html.getAttribute("data-bs-theme");
+          const newTheme = currentTheme === "light" ? "dark" : "light";
+
+          html.setAttribute("data-bs-theme", newTheme);
+          localStorage.setItem("theme", newTheme);
+          updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+          themeIcon.className =
+            theme === "light" ? "bi bi-moon-fill" : "bi bi-sun-fill";
+        }
+
+        // Modern Tree Diagram Initialization
+        initializeTreeDiagrams();
+
+        // Modern Collapse Functionality
+        initializeCollapseButtons();
+      });
+
+      function initializeTreeDiagrams() {
+        // Find all tree diagram lists and initialize Cytoscape
+        document
+          .querySelectorAll('[class^="class-diagram"]')
+          .forEach(function (element, index) {
+            console.log("Processing tree diagram", index);
+
+            // Find the corresponding container by class name
+            let container = document.querySelector(
+              ".diagram-container" + index
+            );
+
+            if (!container) {
+              console.log("Container not found, creating one for index", index);
+              // Create the container if it doesn't exist
+              container = document.createElement("div");
+              container.className = "diagram-container" + index;
+              container.style.width = "100%";
+              container.style.height = "400px";
+              container.style.border = "1px solid #ddd";
+              container.style.borderRadius = "8px";
+              container.style.marginTop = "20px";
+              container.style.backgroundColor = "#f8f9fa";
+
+              // Insert after the list element
+              element.parentNode.insertBefore(container, element.nextSibling);
+            }
+
+            // Convert HTML list to Cytoscape data format
+            const treeData = convertHtmlListToCytoscape(element);
+            console.log("Tree data:", treeData);
+
+            if (treeData.nodes.length > 0) {
+              try {
+                console.log("Creating cytoscape instance with data:", treeData);
+
+                // Check container dimensions
+                console.log(
+                  "Container dimensions:",
+                  container.offsetWidth,
+                  "x",
+                  container.offsetHeight
+                );
+
+                const cy = cytoscape({
+                  container: container,
+                  elements: treeData,
+                  style: getCytoscapeStyle(),
+                  layout: {
+                    name: "dagre",
+                    rankDir: "TB",
+                    spacingFactor: 1.2,
+                    nodeSep: 40,
+                    rankSep: 80,
+                  },
+                  minZoom: 0.1,
+                  maxZoom: 3,
+                });
+
+                console.log(
+                  "Cytoscape instance created successfully for container",
+                  index
+                );
+                console.log("Cytoscape nodes:", cy.nodes().length);
+                console.log("Cytoscape edges:", cy.edges().length);
+
+                // Force layout application and fit after a short delay
+                setTimeout(() => {
+                  console.log(
+                    "Applying layout and fitting view for container",
+                    index
+                  );
+                  const layout = cy.layout({
+                    name: "dagre",
+                    rankDir: "TB",
+                    spacingFactor: 1.2,
+                    nodeSep: 40,
+                    rankSep: 80,
+                  });
+                  layout.run();
+
+                  // Fit after layout completes
+                  layout.one("layoutstop", () => {
+                    cy.fit();
+                    // Set a reasonable initial zoom level for readability
+                    const currentZoom = cy.zoom();
+                    if (currentZoom < 0.8) {
+                      cy.zoom(0.8);
+                      cy.center();
+                    }
+                    console.log(
+                      "Layout completed and view fitted for container",
+                      index
+                    );
+                  });
+                }, 100);
+
+                // Add simple zoom controls
+                addSimpleZoomControls(container, cy);
+
+                // Make nodes clickable
+                cy.on("tap", "node", function (evt) {
+                  const node = evt.target;
+                  const href = node.data("href");
+                  if (href) {
+                    window.open(href, "_blank");
+                  }
+                });
+              } catch (error) {
+                console.error(
+                  "Error creating cytoscape instance for index",
+                  index,
+                  ":",
+                  error
+                );
+                console.error("Error details:", error.message);
+                console.error("Tree data was:", treeData);
+
+                // Show error message in the container
+                container.innerHTML = `
+                  <div class="alert alert-danger m-3">
+                    <h6><i class="bi bi-exclamation-triangle"></i> Tree Diagram Error</h6>
+                    <p class="mb-0">Failed to create interactive tree diagram: ${error.message}</p>
+                    <small class="text-muted">Check browser console for details.</small>
+                  </div>
+                `;
+              }
+            } else {
+              console.warn("No tree data found for index", index);
+              container.innerHTML = `
+                <div class="alert alert-warning m-3">
+                  <h6><i class="bi bi-info-circle"></i> No Tree Data</h6>
+                  <p class="mb-0">No tree structure found to display.</p>
+                </div>
+              `;
+            }
+
+            // Hide the original HTML list by adding processed class
+            element.classList.add("processed");
+          });
       }
-      else if ($(this).attr("id") == "icollapser") {
-    	  var $_tocollapse = $(".interfaces").find(".collapse"); 
+
+      function convertHtmlListToCytoscape(listElement) {
+        const nodes = [];
+        const edges = [];
+        let nodeId = 0;
+
+        function processNode(element, parentId = null) {
+          // Get direct child li elements, then find their direct child a elements
+          const listItems = Array.from(element.children).filter(
+            (child) => child.tagName === "LI"
+          );
+
+          listItems.forEach((li) => {
+            const link = li.querySelector("a");
+            if (!link) return;
+
+            const currentId = "node" + nodeId++;
+            const isOriginal = li.classList.contains("original");
+
+            nodes.push({
+              data: {
+                id: currentId,
+                label: link.textContent.trim(),
+                href: link.href,
+              },
+              classes: isOriginal ? "original" : "",
+            });
+
+            if (parentId) {
+              edges.push({
+                data: {
+                  id: "edge" + currentId,
+                  source: parentId,
+                  target: currentId,
+                },
+              });
+            }
+
+            // Process children - look for nested ul
+            const childList = li.querySelector("ul");
+            if (childList) {
+              processNode(childList, currentId);
+            }
+          });
+        }
+
+        processNode(listElement);
+        return { nodes, edges };
       }
-      else if ($(this).attr("id") == "gcollapser") {
-    	  var $_tocollapse = $(".generics").find(".collapse")
+
+      function getCytoscapeStyle() {
+        return [
+          {
+            selector: "node",
+            style: {
+              "background-color": "#ffffff",
+              "border-color": "#333333",
+              "border-width": 2,
+              label: "data(label)",
+              "text-valign": "center",
+              "text-halign": "center",
+              "font-size": "16px",
+              "font-weight": "500",
+              width: "220px",
+              height: "60px",
+              shape: "roundrectangle",
+              "text-wrap": "wrap",
+              "text-max-width": "210px",
+              "text-overflow-wrap": "anywhere",
+            },
+          },
+          {
+            selector: "node.original",
+            style: {
+              "background-color": "#007bff",
+              color: "#ffffff",
+              "border-color": "#0056b3",
+              "font-weight": "600",
+            },
+          },
+          {
+            selector: "edge",
+            style: {
+              width: 2,
+              "line-color": "#666666",
+              "target-arrow-color": "#666666",
+              "target-arrow-shape": "triangle",
+              "curve-style": "bezier",
+            },
+          },
+        ];
       }
-      var link_text = $(this).text();
-      if (link_text.indexOf("Expand") !== -1) {
-        $(this).html("Collapse" + link_text.substr(6));
+
+      function addSimpleZoomControls(container, cy) {
+        const controls = document.createElement("div");
+        controls.style.position = "absolute";
+        controls.style.top = "10px";
+        controls.style.right = "10px";
+        controls.style.zIndex = "10";
+        controls.innerHTML = `
+          <div style="display: flex; gap: 3px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm btn-outline-secondary zoom-in" title="Zoom In">
+              <i class="bi bi-zoom-in"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary zoom-out" title="Zoom Out">
+              <i class="bi bi-zoom-out"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary fit" title="Fit to View">
+              <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary reset" title="Reset Zoom (100%)">
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+          </div>
+        `;
+
+        container.style.position = "relative";
+        container.appendChild(controls);
+
+        controls.querySelector(".zoom-in").addEventListener("click", () => {
+          const newZoom = cy.zoom() * 1.3;
+          cy.zoom(newZoom);
+          cy.center();
+        });
+        controls.querySelector(".zoom-out").addEventListener("click", () => {
+          const newZoom = cy.zoom() * 0.77;
+          cy.zoom(newZoom);
+          cy.center();
+        });
+        controls
+          .querySelector(".fit")
+          .addEventListener("click", () => cy.fit());
+        controls.querySelector(".reset").addEventListener("click", () => {
+          cy.zoom(1);
+          cy.center();
+        });
       }
-      else {
-        $(this).html("Expand" + link_text.substr(8)); // Collapse is an 8-char word
+
+      function initializeCollapseButtons() {
+        document
+          .querySelectorAll(
+            "#fcollapser, #scollapser, #icollapser, #gcollapser"
+          )
+          .forEach((button) => {
+            button.addEventListener("click", function (event) {
+              event.preventDefault();
+
+              let targetSelector;
+              switch (this.id) {
+                case "scollapser":
+                  targetSelector = ".subroutines .arguments";
+                  break;
+                case "fcollapser":
+                  targetSelector = ".functions .arguments";
+                  break;
+                case "icollapser":
+                  targetSelector = ".interfaces .arguments";
+                  break;
+                case "gcollapser":
+                  targetSelector = ".generics .collapse";
+                  break;
+              }
+
+              const collapseElements =
+                document.querySelectorAll(targetSelector);
+              const buttonText = this.textContent.trim();
+
+              collapseElements.forEach((element) => {
+                const bsCollapse = new bootstrap.Collapse(element, {
+                  toggle: true,
+                });
+              });
+
+              // Update button text and icon
+              const icon = this.querySelector("i");
+              if (buttonText.includes("Expand")) {
+                this.innerHTML =
+                  '<i class="bi bi-arrows-collapse"></i> Collapse Arguments';
+              } else {
+                this.innerHTML =
+                  '<i class="bi bi-arrows-expand"></i> Expand Arguments';
+              }
+            });
+          });
       }
-      $_tocollapse.collapse("toggle");
-    })
     </script>
   </body>
 </html>

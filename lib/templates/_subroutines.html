@@ -1,18 +1,33 @@
-{# expects 'subroutines' variable #}
-{% if subroutines %}
-<h2>Subroutines <small><a id="scollapser" data-toggle="collapse" data-target="arguments" href="">Expand Arguments</a></small></h2>
-  {% for subroutine in subroutines %}
-  {% if loop.first %}
-  <ul class="subroutines">
-  {% endif %}
-    <li><b>{{ subroutine.caption }}</b>
-    {% if subroutine.comment|trim %}
-      <p><blockquote>{{ subroutine.comment|e }}</blockquote></p>
-    {% endif %}
-    {% include "_arguments.html" %}
-    </li>
-  {% if loop.last %}
-  </ul>
-  {% endif %}
-  {% endfor %}
+{# Modern Subroutines Template - expects 'subroutines' variable #} {% if
+subroutines %}
+<div class="card h-100">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="card-title mb-0"><i class="bi bi-gear"></i> Subroutines</h5>
+    <button
+      class="btn btn-outline-secondary btn-sm"
+      id="scollapser"
+      type="button"
+    >
+      <i class="bi bi-arrows-expand"></i> Expand Arguments
+    </button>
+  </div>
+  <div class="card-body">
+    <ul class="list-unstyled subroutines">
+      {% for subroutine in subroutines %}
+      <li class="mb-3 p-3 border rounded">
+        <h6 class="fw-bold text-primary mb-2">
+          <i class="bi bi-play-circle"></i> {{ subroutine.caption }}
+        </h6>
+        {% if subroutine.comment|trim %}
+        <div
+          class="alert alert-light border-start border-primary border-3 mb-2"
+        >
+          <small class="text-muted">{{ subroutine.comment|e }}</small>
+        </div>
+        {% endif %} {% include "_arguments.html" %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
 {% endif %}

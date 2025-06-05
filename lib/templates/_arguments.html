@@ -1,25 +1,29 @@
-{# requires 'subroutine' variable. represents arguments for a single subroutine#}
-{% if subroutine.arguments %}
+{# requires 'subroutine' variable. represents arguments for a single
+subroutine#} {% if subroutine.arguments %}
 <ul class="list-unstyled arguments collapse">
-{% for argument in subroutine.arguments %}
-  {% if argument.is_return %}
-    <li class="return"> 
+  {% for argument in subroutine.arguments %} {% if argument.is_return %}
+  <li class="return">
     {% if argument.class_doc %}
-      <a href="{{ argument.class_doc }}"><b>{{ argument.class_caption }}&nbsp;{{ argument.extras|default('', true) }}</b></a>
-      &nbsp;:: {{ argument.full_caption }}
-    {% else %}
-      {{ argument.class_caption|e }}&nbsp;&nbsp;{{ argument.extras|default('', true) }} :: {{ argument.full_caption }}
-    {% endif %}
-  {% else %}
-    <li>
+    <a href="{{ argument.class_doc }}"
+      ><b
+        >{{ argument.class_caption }}&nbsp;{{ argument.extras|default('', true)
+        }}</b
+      ></a
+    >
+    &nbsp;:: {{ argument.full_caption }} {% else %} {{ argument.class_caption|e
+    }}&nbsp;&nbsp;{{ argument.extras|default('', true) }} :: {{
+    argument.full_caption }} {% endif %} {% else %}
+  </li>
+
+  <li>
     {% if argument.class_doc %}
-      <a href="{{ argument.class_doc }}"><b>{{ argument.class_caption }}&nbsp;</b></a>{{ argument.extras|default('', true) }} 
-      &nbsp;:: {{ argument.full_caption }}
-    {% else %}
-      {{ argument.class_caption|e }}&nbsp;{{ argument.extras|default('', true) }} :: {{ argument.full_caption }}
-    {% endif %}
-  {% endif %}
-  <em>{{ argument.comment|default('', true)|e }}</em></li>
-{% endfor %}
+    <a href="{{ argument.class_doc }}"
+      ><b>{{ argument.class_caption }}&nbsp;</b></a
+    >{{ argument.extras|default('', true) }} &nbsp;:: {{ argument.full_caption
+    }} {% else %} {{ argument.class_caption|e }}&nbsp;{{
+    argument.extras|default('', true) }} :: {{ argument.full_caption }} {% endif
+    %} {% endif %} <em>{{ argument.comment|default('', true)|e }}</em>
+  </li>
+  {% endfor %}
 </ul>
 {% endif %}
