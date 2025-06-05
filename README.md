@@ -1,9 +1,5 @@
 # Fortran Documentation Generator
 
-[![GitHub](https://img.shields.io/badge/GitHub-fordocs-blue?logo=github)](https://github.com/cmbant/fordocs)
-[![Python](https://img.shields.io/badge/Python-3.6+-blue?logo=python)](https://python.org)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-
 A modern, interactive documentation generator for Fortran projects that creates beautiful HTML documentation with tree diagrams, GitHub integration, and responsive design.
 
 ## ✨ Features
@@ -121,10 +117,6 @@ The codebase includes a test file `makeCAMB.py` that should work for testing the
 ### Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👥 Authors
 
