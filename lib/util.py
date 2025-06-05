@@ -1,9 +1,3 @@
-"""
-Created on Aug 27, 2014
-@author: Mohammed Hamdy
-"""
-
-
 class ContinuationIterator:
     """
     Takes a list of strings as input. Concatenates lines with ampersands to one line
@@ -34,9 +28,7 @@ class ContinuationIterator:
                 continuation_lines.append(next_line)
         if len(continuation_lines) > 1:  # must have found a multi-line thing
             self._current_index -= 1  # since i'm now a line after continuation
-        continuation_lines = [
-            line.replace("&", "").strip() for line in continuation_lines
-        ]
+        continuation_lines = [line.replace("&", "").strip() for line in continuation_lines]
         line = " ".join(continuation_lines)
         return line
 

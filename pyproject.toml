@@ -8,7 +8,7 @@ version = "2.0.0"
 description = "Modern Fortran documentation generator with tree diagrams"
 readme = "Readme.txt"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "LGPL-3.0-or-later"
 authors = [
     {name = "Antony Lewis", email = "antony@cosmologist.info"}
 ]
@@ -39,3 +39,6 @@ Issues = "https://github.com/cmbant/fordocs/issues"
 where = ["."]
 include = ["lib*", "fordocs*"]
 
+[tool.ruff]
+line-length = 120
+target-version = "py310"

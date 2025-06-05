@@ -30,13 +30,9 @@ def generate_docs(
         t = time.time()
     if excludes_file:
         excludes.append(open(excludes_file).readlines())
-    mf.fillModel(
-        sourceFolders=sourceDirectories, match=match_pattern, excludes=excludes
-    )
+    mf.fillModel(sourceFolders=sourceDirectories, match=match_pattern, excludes=excludes)
     if NOISY:
-        print(
-            f"Phase #1: Finished <parsed {mf.fileCount():d} files in {(time.time() - t) / 60:.2f} minutes>"
-        )
+        print(f"Phase #1: Finished <parsed {mf.fileCount():d} files in {(time.time() - t) / 60:.2f} minutes>")
         print()
         print("Phase #2: Generating documentation")
 
@@ -47,25 +43,6 @@ def generate_docs(
         print("Done")
 
 
-# if __name__ == "__main__":
-#     generate_docs(
-#         [r"c://work/dist/git/camb"],
-#         r"z:\testoutfull",
-#         "*.f90",
-#         "Fortran CAMB Documentation",
-#         excludes=[
-#             "sigma8.f90",
-#             "second_PT*",
-#             "tester*",
-#             "Inspector*",
-#             "forutils*",
-#             "cosmorec*",
-#             "hyrec*",
-#             "writefits*",
-#         ],
-#         class_tree_splits=["TCambComponent"],
-#     )
-
 if __name__ == "__main__":
     import argparse
 
@@ -75,9 +52,7 @@ if __name__ == "__main__":
         nargs="+",
         help="The directory in which to search for Fortran files, recursively",
     )
-    parser.add_argument(
-        "output_folder", help="The directory in which documentation will be generated"
-    )
+    parser.add_argument("output_folder", help="The directory in which documentation will be generated")
     parser.add_argument("--file_pattern", default="*.*90")
     parser.add_argument(
         "--title",
@@ -91,12 +66,8 @@ if __name__ == "__main__":
         help="list of class names to show separately in class tree index (rather than as part of larger big tree)",
     )
 
-    parser.add_argument(
-        "--excludes", nargs="+", help="list of file name patterns to exclude"
-    )
-    parser.add_argument(
-        "--excludes_file", help="file containing list of file names to exclude"
-    )
+    parser.add_argument("--excludes", nargs="+", help="list of file name patterns to exclude")
+    parser.add_argument("--excludes_file", help="file containing list of file names to exclude")
 
     args = parser.parse_args()
     generate_docs(

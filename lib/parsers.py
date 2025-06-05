@@ -1,9 +1,5 @@
-"""
-Created on Aug 8, 2014
-@author: Mohammed Hamdy
-"""
-
 import re
+
 from .util import ContinuationIterator
 
 
@@ -23,9 +19,7 @@ class Parser:
         comment_regex = cls.COMMENT_LINE_REGEX
         comment_lines = []
         for i, line in enumerate(lines):
-            stripped = (
-                line.strip()
-            )  # check for empty lines. They belong to the comments
+            stripped = line.strip()  # check for empty lines. They belong to the comments
             if not stripped:
                 comment_lines.append("\n")  # preserve paragraphs ...
             else:
@@ -123,9 +117,7 @@ class FileParser(Parser):
 
 
 class ProgramParser(FileParser):
-    PROGRAM_CHECKER_REGEX = re.compile(
-        r"^\s*program\s*(?P<program_name>[_\w\d]+)", re.MULTILINE | re.IGNORECASE
-    )
+    PROGRAM_CHECKER_REGEX = re.compile(r"^\s*program\s*(?P<program_name>[_\w\d]+)", re.MULTILINE | re.IGNORECASE)
 
     class Program(FileParser.File):
         def __init__(self, parentObject):
@@ -160,9 +152,7 @@ class ModuleParser(Parser):
     )
 
     class Module:
-        def __init__(
-            self, name, comment, classes, dependencies, subroutines, interfaces
-        ):
+        def __init__(self, name, comment, classes, dependencies, subroutines, interfaces):
             self.name = name
             self.comment = comment
             self.classes = classes
@@ -355,9 +345,7 @@ class ArgumentParser(Parser):
                     arg_extras = ",".join(cls.splitVariables(arg_extras))
                 arg_names = result_dict["var_names"]
                 arg_names = cls.splitVariables(arg_names)
-                arg_names = [
-                    arg.strip() for arg in arg_names
-                ]  # since splitVariables splits on commas, not spaces
+                arg_names = [arg.strip() for arg in arg_names]  # since splitVariables splits on commas, not spaces
                 for full_arg_name in arg_names:
                     detailed_argument = pure_argument_name_matcher.match(full_arg_name)
                     if detailed_argument:
@@ -457,9 +445,7 @@ class SubroutineParser(Parser):
     HEADER_KEYWORDS_REGEX = re.compile("recursive|pure|elemental", re.IGNORECASE)
 
     class Subroutine:
-        def __init__(
-            self, category, name, alias, arguments, comment, resultName, returnType
-        ):
+        def __init__(self, category, name, alias, arguments, comment, resultName, returnType):
             # category means either a 'function' or 'subroutine'
             self.category = category
             self.name = name
@@ -471,9 +457,7 @@ class SubroutineParser(Parser):
 
         def __eq__(self, other):
             # enough if they have same names
-            return (
-                self.alias and other.alias and self.alias == other.alias
-            ) or self.name == other.name
+            return (self.alias and other.alias and self.alias == other.alias) or self.name == other.name
 
         def __hash__(self):
             name_sum = 0
@@ -510,9 +494,7 @@ class SubroutineParser(Parser):
                 rest
             )  # this could also parse other things like subroutine variables
             subalias = ""
-            if (
-                subname in found_aliases
-            ):  # procedure/subroutine/function has an alias, fix the name and alias
+            if subname in found_aliases:  # procedure/subroutine/function has an alias, fix the name and alias
                 for match in alias_matches:
                     if match.group("procedure_alias") == subname:
                         subname, subalias = (
@@ -524,14 +506,10 @@ class SubroutineParser(Parser):
             argnames = result_dict["argnames"]
             argnames = argnames.replace("&", "")  # remove line continuations
             argnames = splitter.split(argnames)
-            compiled_argument_templates = [
-                re.compile(argument_template.format(argname)) for argname in argnames
-            ]
+            compiled_argument_templates = [re.compile(argument_template.format(argname)) for argname in argnames]
             result_name = result_dict["result_name"]
             return_type = result_dict["return_type"]
-            return_type = (
-                return_type if return_type else ""
-            )  # stringify for the next match
+            return_type = return_type if return_type else ""  # stringify for the next match
             if function_type_regex.match(
                 return_type
             ):  # the function has a keyword defined. Return type must be specified in result()
@@ -539,18 +517,12 @@ class SubroutineParser(Parser):
             if category == "function" and not return_type:  # didn't find type in header
                 for argument in parsed_arguments:
                     if result_name:
-                        argument_match_template = re.compile(
-                            argument_template.format(result_name), re.IGNORECASE
-                        )
-                        argument_is_return = argument_match_template.match(
-                            argument.name
-                        )
+                        argument_match_template = re.compile(argument_template.format(result_name), re.IGNORECASE)
+                        argument_is_return = argument_match_template.match(argument.name)
                     else:
                         argument_is_return = False
                     if (
-                        argument_is_return
-                        or argument.name == subname
-                        or argument.name == subalias
+                        argument_is_return or argument.name == subname or argument.name == subalias
                     ):  # because the subname can be a variable
                         if argument.extras:
                             return_type = " ".join([argument.type, argument.extras])
@@ -563,9 +535,7 @@ class SubroutineParser(Parser):
                 for cat in compiled_argument_templates:
                     if cat.match(argument.name):  # this filters subroutine variables in
                         actual_args.append(argument)
-                        compiled_argument_templates.remove(
-                            cat
-                        )  # only the first match of argument name counts
+                        compiled_argument_templates.remove(cat)  # only the first match of argument name counts
                         break
             subroutines.append(
                 cls.Subroutine(
@@ -604,9 +574,7 @@ class ModuleSubroutineParser(SubroutineParser):
     def parse(cls, moduleString):
         class_matcher = ClassParser.CLASS_REGEX
         all_subroutines = set(SubroutineParser.parse(moduleString))
-        class_bodies = [
-            match.group("class_body") for match in class_matcher.finditer(moduleString)
-        ]
+        class_bodies = [match.group("class_body") for match in class_matcher.finditer(moduleString)]
         classes_subroutines = set()
         for class_body in class_bodies:
             class_subroutines = ClassSubroutineParser.parse(moduleString, class_body)
@@ -632,9 +600,7 @@ class ClassSubroutineParser(SubroutineParser):
         for class_procedure in class_procedures:
             match_dict = class_procedure.groupdict()
             procedure_name = match_dict["procedure_name"]
-            final_name = match_dict[
-                "final_procedure_name"
-            ]  # this is exclusive with procedure name
+            final_name = match_dict["final_procedure_name"]  # this is exclusive with procedure name
             procedure_alias = match_dict["procedure_alias"]
             for file_subroutine in all_subroutines:
                 if procedure_alias:  # if there's an alias, never match on name, to avoid duplicate subroutines
@@ -642,8 +608,7 @@ class ClassSubroutineParser(SubroutineParser):
                         all_class_subroutines.append(file_subroutine)
                         break
                 elif not file_subroutine.alias and (
-                    file_subroutine.name == procedure_name
-                    or file_subroutine.name == final_name
+                    file_subroutine.name == procedure_name or file_subroutine.name == final_name
                 ):
                     all_class_subroutines.append(file_subroutine)
                     break

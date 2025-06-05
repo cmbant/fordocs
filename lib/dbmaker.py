@@ -1,8 +1,3 @@
-"""
-Created on Aug 9, 2014
-@author: Mohammed Hamdy
-"""
-
 import copy
 import fnmatch
 import os
@@ -46,10 +41,7 @@ class ModelFiller:
 
         if match:
             compiled_regex = re.compile(fnmatch.translate(match), re.IGNORECASE)
-        compiled_excludes = [
-            re.compile(fnmatch.translate(exclude), re.IGNORECASE)
-            for exclude in excludes
-        ]
+        compiled_excludes = [re.compile(fnmatch.translate(exclude), re.IGNORECASE) for exclude in excludes]
 
         def excluded(fname):
             for ex in compiled_excludes:
@@ -154,9 +146,7 @@ class ModelFiller:
             )
             session.add(dbsubroutine)
             session.commit()
-            arguments = self._extractArguments(
-                subroutine.arguments, SubroutineArgument, dbsubroutine
-            )
+            arguments = self._extractArguments(subroutine.arguments, SubroutineArgument, dbsubroutine)
             dbsubroutine.arguments = arguments
             res.append(dbsubroutine)
         return res
@@ -189,9 +179,7 @@ class ModelFiller:
                     dbcls.parent_id = parent.id
                 else:
                     # a new parent will be created
-                    parent = Class(
-                        name=cls.parent
-                    )  # other attributes are currently unknown
+                    parent = Class(name=cls.parent)  # other attributes are currently unknown
                     session.add(parent)
                     session.commit()
                     dbcls.parent_id = parent.id
@@ -207,9 +195,7 @@ class ModelFiller:
             # check if any modules in this file are already in the database and not fully initialized.
             # if so, now you know about them from the file and populate them
             try:
-                dbmodule = (
-                    session.query(Module).filter(Module.name == module.name).one()
-                )
+                dbmodule = session.query(Module).filter(Module.name == module.name).one()
             except NoResultFound as _:
                 # create a new module and populate it
                 dbmodule = Module(name=module.name)
@@ -218,9 +204,7 @@ class ModelFiller:
             dbmodule.comment = module.comment
             dbmodule.dependencies = self._extractDependencies(module.dependencies)
             dbmodule.classes = self._extractClasses(module.classes, dbmodule)
-            dbmodule.subroutines = self._extractSubroutines(
-                module.subroutines, dbmodule
-            )
+            dbmodule.subroutines = self._extractSubroutines(module.subroutines, dbmodule)
             dbmodule.interfaces = self._extractInterfaces(module.interfaces, dbmodule)
             for subroutine in dbmodule.subroutines:
                 subroutine.module_id = dbmodule.id
@@ -232,9 +216,7 @@ class ModelFiller:
         # (unique constraint is not enforced by sqlalchemy)
         dependencies = []
         for dep in parsedDependencies:
-            existing_dependency = (
-                session.query(Dependency).filter(Dependency.name == dep).first()
-            )
+            existing_dependency = session.query(Dependency).filter(Dependency.name == dep).first()
             if existing_dependency:
                 dependencies.append(existing_dependency)
             else:
@@ -244,9 +226,7 @@ class ModelFiller:
     def _extractInterfaces(self, interfaceList, dbModule):
         dbinterfaces = []
         for interface in interfaceList:
-            dbinterface = Interface(
-                name=interface.name, procedure_names=",".join(interface.procedure_list)
-            )
+            dbinterface = Interface(name=interface.name, procedure_names=",".join(interface.procedure_list))
             dbinterface.module_id = dbModule.id
             dbinterfaces.append(dbinterface)
         return dbinterfaces
